@@ -6,7 +6,7 @@ Writing short sequences into the genome with prime eiditng  faciliates protein t
 **System requirements**
 
 - Python 3.8
-- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), shap (0.39.0), statannot (0.2.3), XGBoost (1.4.0)
+- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0)
 
 **Usage guide**
 
