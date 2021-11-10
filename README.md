@@ -23,6 +23,7 @@ Output:
 
 Command line usage:
 
-python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence] -m [mmr status, default: 0] -a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]
+`python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence] -m [mmr status, default: 0]` <br/>
+`-a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]`
 
 
