@@ -14,7 +14,6 @@ import xgboost as xgb
 def load_model(modeldir):
     """Loads the models from a directory into a dictionary. Returns dictionary."""
     modellist = [os.path.basename(d) for d in glob.glob(modeldir+  '/*')]
-    print(modellist)
     model_dict = {}
     for model in modellist:
         modelpath = os.path.join('/Users/jw38/Documents/MinsePIE/models/', model)
@@ -78,6 +77,7 @@ def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 
     # get features
     request = enhance_feature_df(request)
     # choose model
+    print(f'Prediction model {model}')
     pred_model = model_dict[model]
     # predict
     zscore = pred_model.predict(xgb.DMatrix(request[features]))
@@ -98,15 +98,22 @@ def main():
 
     # Create the command line interface:
     parser = argparse.ArgumentParser(description='Modeling insertion efficiencies for Prime Editing experiments')
-    parser.add_argument('-i', '--insert', dest = 'insert', type = str, help ='Insert seuquence')
-    parser.add_argument('-p', '--pbs', dest = 'pbs', type = str, help = 'Primer binding site of pegRNA')
-    parser.add_argument('-r', '--rtt', dest = 'rtt', type = str, help = 'Reverse transcriptase template of pegRNA')
-    parser.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
-    parser.add_argument('-a', '--mean', dest = 'mean', type = float, default = None,help ='Expected mean editing efficiency for experimental setup')
-    parser.add_argument('-s', '--std', dest = 'std', type = float, default = None,help ='Expected standard deviation for editing efficiency of experimental setup')
+    
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')    
+    required.add_argument('-i', '--insert', dest = 'insert', type = str, help ='Insert seuquence', required=True)
+    required.add_argument('-p', '--pbs', dest = 'pbs', type = str, help = 'Primer binding site of pegRNA', required=True)
+    required.add_argument('-r', '--rtt', dest = 'rtt', type = str, help = 'Reverse transcriptase template of pegRNA', required=True)
+    optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
+    optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = None,help ='Expected mean editing efficiency for experimental setup')
+    optional.add_argument('-s', '--std', dest = 'std', type = float, default = None,help ='Expected standard deviation for editing efficiency of experimental setup')
     
     # Parse the CLI:
     args = parser.parse_args()
+    if not args.mmr:
+        print("MMR status of cell line is considered as 0 (MMR deficient)")
+
+    
     # Load the model
     model_dict = load_model(modeldir)
     # Predict
