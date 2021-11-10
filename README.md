@@ -6,15 +6,18 @@ Writing short sequences into the genome with prime eiditng  faciliates protein t
 **System requirements**
 
 - Python 3.8
-- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0)
+- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0), pickle (3.10.0)
 
 **Usage guide**
 
 Input:
 - sequence to be inserted
 - primer binding site and reverse transcriptase templates
+- MMR status of the cell line (default: MMR deficient)
+- optional: expected mean and standard deviation for editing events in the experimental setup
 
 Output:
-- Prediction insertion efficiency (z-score)
+- Predicted insertion efficiency score (z-score)
+- optional: Convertion of z-score into insertion efficiency [%] based on expected mean and standard deviation for editing events in the experimental setup
 
 
