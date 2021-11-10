@@ -25,6 +25,6 @@ Command line usage:
 python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence]  -m [mmr status of cellline, default: 0] -a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]
 
 **Reference**
-Predicting efficiency of writing short sequences into the genome using prime editing
-Jonas Koeppel, Juliane Weller, Elin Madli Peets, Ananth Pallaseni, Fabio Liberante, Leopold Parts
+Predicting efficiency of writing short sequences into the genome using prime editing <\br>
+Jonas Koeppel, Juliane Weller, Elin Madli Peets, Ananth Pallaseni, Fabio Liberante, Leopold Parts <\br>
 bioRxiv tbd; doi: tbd
