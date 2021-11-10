@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="MinsePIE", 
+    name="minsepie", 
     version="0.1",
     author="Juliane Weller",
     author_email="jw38@sanger.ac.uk",
