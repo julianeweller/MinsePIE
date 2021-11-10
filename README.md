@@ -7,6 +7,7 @@ Writing short sequences into the genome with prime eiditng  faciliates protein t
 
 - Python 3.8
 - Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0), pickle (3.10.0)
+- RNAlib-2.4.18: viennarna https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html
 
 **Usage guide**
 
