@@ -21,4 +21,7 @@ Output:
 - Predicted insertion efficiency score (z-score)
 - optional: Convertion of z-score into insertion efficiency [%] based on expected mean and standard deviation for editing events in the experimental setup
 
+Command line usage:
+python minsepie.py -p [PBS sequence] -i [insert sequence] -r [RTT sequence] -m [mmr status, default: 0] -a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]
+
 
