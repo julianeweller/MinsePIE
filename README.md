@@ -35,4 +35,5 @@ python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence]  -m 
 
 Predicting efficiency of writing short sequences into the genome using prime editing </br>
 Jonas Koeppel, Elin Madli Peets, Juliane Weller, Ananth Pallaseni, Fabio Liberante, Leopold Parts </br>
-bioRxiv https://www.biorxiv.org/content/10.1101/2021.11.10.468024v1; doi: https://doi.org/10.1101/2021.11.10.468024
+bioRxiv https://www.biorxiv.org/content/10.1101/2021.11.10.468024v1 </br>
+doi: https://doi.org/10.1101/2021.11.10.468024
