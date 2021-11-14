@@ -19,7 +19,7 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 
 Input:
 - sequence to be inserted (5' to 3')
-- primer binding site and reverse transcriptase template (respective 5' to 3' sequence on target site; without insert sequence)
+- primer binding site and reverse transcriptase template (if target site on forward strand: respective 5' to 3' sequence on target site, otherwise the reverse complement in 5' to 3'; without insert sequence)
 - MMR status of the cell line (default: MMR deficient)
 - optional: expected mean and standard deviation for editing events in the experimental setup
 
