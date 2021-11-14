@@ -34,16 +34,16 @@ def enhance_feature_df(df):
     df['smaller3'] = df['sequence_original'].apply(lambda x: 1 if len(x) <=3 else 0)
     # Bases count
     df.sequence_original = df.sequence_original.astype('str')
-    df['countC'] = df['sequence_original'].apply(lambda x: x.count('c' or 'C'))
-    df['countG'] = df['sequence_original'].apply(lambda x: x.count('g' or 'G'))
-    df['countA'] = df['sequence_original'].apply(lambda x: x.count('a' or 'A'))
-    df['countT'] = df['sequence_original'].apply(lambda x: x.count('t' or 'T'))
+    df['countC'] = df['sequence_original'].apply(lambda x: x.count('c' and 'C'))
+    df['countG'] = df['sequence_original'].apply(lambda x: x.count('g' and 'G'))
+    df['countA'] = df['sequence_original'].apply(lambda x: x.count('a' and 'A'))
+    df['countT'] = df['sequence_original'].apply(lambda x: x.count('t' and 'T'))
     # Relative content
-    df['percC'] = df['countC'] / df['length']
-    df['percG'] = df['countG'] / df['length']
-    df['percA'] = df['countA'] / df['length']
-    df['percT'] = df['countT'] / df['length']
-    df['percGC'] = (df['countG'] + df['countC'])/df['length']
+    df['percC'] = df['countC'] / df['length'] *100
+    df['percG'] = df['countG'] / df['length'] *100
+    df['percA'] = df['countA'] / df['length'] *100
+    df['percT'] = df['countT'] / df['length'] *100
+    df['percGC'] = (df['countG'] + df['countC'])/df['length'] *100
     # Find runs
     df['Arun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)a+aaa', x) else 0)
     df['Crun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)c+ccc', x) else 0)
