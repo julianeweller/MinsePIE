@@ -7,16 +7,45 @@ import pandas as pd
 import numpy as np
 import argparse
 import xgboost as xgb
+from pandarallel import pandarallel
 
+# Getting features as functions
+def reverse_complement(seq):
+    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A','a': 't', 'c': 'g', 'g': 'c', 't': 'a'}
+    rc = "".join(complement.get(base, base) for base in reversed(seq))
+    return rc
+def get_length(x):
+    return len(x)
+def get_smaller3(x):
+    if len(x) <=3:
+        return True
+    else:
+        return False
+def get_countN(x,n):
+    return x.upper().count(n.upper())
+def get_Nrun(x,n):
+    my_regex = r"(?i)" + n + "+" + n + n + n
+    if bool(re.search(my_regex, x)) == True:
+        return True
+    else:
+        return False
+def get_tm(x):
+    return mt.Tm_NN(x)
+def get_vf(x):
+    vf = RNA.fold(x)
+    if vf[1] == np.nan:
+        return 0
+    else:
+        return vf[1]
 
 
 # Load model
 def load_model(modeldir):
     """Loads the models from a directory into a dictionary. Returns dictionary."""
-    modellist = [os.path.basename(d) for d in glob.glob(modeldir+  '/*')]
+    modellist = [os.path.basename(d) for d in glob.glob(modeldir+  '/*.sav')]
     model_dict = {}
     for model in modellist:
-        modelpath = os.path.join('/Users/jw38/Documents/MinsePIE/models/', model)
+        modelpath = os.path.join(modeldir, model)
         model_temp = pickle.load(open(modelpath, 'rb'))
         model_dict[model] = model_temp
     return model_dict
@@ -24,38 +53,53 @@ def load_model(modeldir):
 # Generate features
 def create_feature_df(insert, rtt, pbs, mmr):
     """Generates a pandas dataframe based on the user's input."""
-    df = pd.DataFrame(data= {'sequence_original' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr}, index=[0])
+    df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr}, index=[0])
     return df
 
-def enhance_feature_df(df):
+def enhance_feature_df(df, seq = 'insert', ext = 'extension', full = 'full'):
     """Calculates relevant features based on insert sequence, RTT, PBS and MMR status."""
-    # Create dataframe with relevant features
-    df['length'] = df['sequence_original'].apply(lambda x: len(x))
-    df['smaller3'] = df['sequence_original'].apply(lambda x: 1 if len(x) <=3 else 0)
+    # Generate sequences
+    df[seq] = df[seq].astype('str')
+    df['RTT_rc'] = df['RTT'].apply(lambda x: reverse_complement(x))
+    df['PBS_rc'] = df['PBS'].apply(lambda x: reverse_complement(x))
+    df['insert_rc'] = df[seq].apply(lambda x: reverse_complement(x))
+    df[ext] = df['RTT_rc'] + df['insert_rc'] + df['PBS_rc']
+    df[full] = df['PBS'] + df[seq] + df['RTT']
+    # Length features
+    df['length'] = df[seq].apply(get_length)
+    df['length_ext'] = df[ext].apply(get_length)
+    df['smaller3'] = df[seq].apply(get_smaller3)
     # Bases count
-    df.sequence_original = df.sequence_original.astype('str')
-    df['countC'] = df['sequence_original'].apply(lambda x: x.count('c' and 'C'))
-    df['countG'] = df['sequence_original'].apply(lambda x: x.count('g' and 'G'))
-    df['countA'] = df['sequence_original'].apply(lambda x: x.count('a' and 'A'))
-    df['countT'] = df['sequence_original'].apply(lambda x: x.count('t' and 'T'))
+    df['countC'] = df[seq].apply(lambda x: get_countN(x,'C'))
+    df['countG'] = df[seq].apply(lambda x: get_countN(x,'G'))
+    df['countA'] = df[seq].apply(lambda x: get_countN(x,'A'))
+    df['countT'] = df[seq].apply(lambda x: get_countN(x,'T'))
+    df['countC_ext'] = df[ext].apply(lambda x: get_countN(x,'C'))
+    df['countG_ext'] = df[ext].apply(lambda x: get_countN(x,'G'))
+    df['countA_ext'] = df[ext].apply(lambda x: get_countN(x,'A'))
+    df['countT_ext'] = df[ext].apply(lambda x: get_countN(x,'T'))
     # Relative content
     df['percC'] = df['countC'] / df['length'] *100
     df['percG'] = df['countG'] / df['length'] *100
     df['percA'] = df['countA'] / df['length'] *100
     df['percT'] = df['countT'] / df['length'] *100
+    df['percC_ext'] = df['countC_ext'] / df['length_ext'] *100
+    df['percG_ext'] = df['countG_ext'] / df['length_ext'] *100
+    df['percA_ext'] = df['countA_ext'] / df['length_ext'] *100
+    df['percT_ext'] = df['countT_ext'] / df['length_ext'] *100
     df['percGC'] = (df['countG'] + df['countC'])/df['length'] *100
+    df['percGC_ext'] = (df['countG_ext'] + df['countC_ext'])/df['length_ext'] *100
     # Find runs
-    df['Arun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)a+aaa', x) else 0)
-    df['Crun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)c+ccc', x) else 0)
-    df['Trun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)t+ttt', x) else 0)
-    df['Grun'] = df['sequence_original'].apply(lambda x: 1 if re.search(r'(?i)g+ggg', x) else 0)
-    # Sequence specific features
-    df['Tm_NN'] = df['sequence_original'].apply(lambda x: mt.Tm_NN(x))
-    df['VF_insert'] = df['sequence_original'].apply(lambda x: (RNA.fold(x)))
-    df['VF_insert'] = df['VF_insert'].apply(lambda x: 0 if x[1] == np.nan else x[1])
-    df['extension'] = df['PBS'] + df['sequence_original'] + df['RTT']
-    df['VF_full'] = df['extension'].apply(lambda x: (RNA.fold(x)))
-    df['VF_full'] = df['VF_full'].apply(lambda x: 0 if x[1] == np.nan else x[1])
+    df['Arun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'A'))
+    df['Crun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'C'))
+    df['Trun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'T'))
+    df['Grun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'G'))
+    # Secondary structure
+    df['Tm_NN_ext'] = df[ext].parallel_apply(get_tm)
+    df['Tm_NN'] = df[seq].parallel_apply(get_tm)
+    df['VF_full'] = df[full].parallel_apply(get_vf)
+    df['VF_ext'] = df[ext].parallel_apply(get_vf)
+    df['VF_insert'] = df[seq].parallel_apply(get_vf)
     return df
 
 def scale_zscore(zscore, mean, std):
@@ -63,14 +107,11 @@ def scale_zscore(zscore, mean, std):
     zscaled = zscore * std + mean
     return zscaled
 
-def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 'MinsePIE.sav'):
+def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 'MinsePIE_v2.sav'):
     """Uses the loaded model to predict insertion efficiency from an input sequence."""
-    features = [
-            'length', 'smaller3',  
-            'percGC', 'percG', 'percC', 'percT', 'percA', 
-            'countG',  'countT', 'countC', 'countA',
-            'Crun', 'Arun', 'Trun', 'Grun',
-            'VF_insert','VF_full', 'Tm_NN','mmr']
+    features = ['length', 'smaller3',  'percGC', 'percG', 'percC', 'percT', 'percA', 
+    'countG',  'countT', 'countC', 'countA', 'Crun_ext', 'Arun_ext', 'Trun_ext', 'Grun_ext',
+    'VF_insert', 'VF_full', 'VF_ext', 'Tm_NN_ext', 'mmr']
 
     # make dataframe
     request = create_feature_df(insert, rtt, pbs, mmr)
@@ -85,7 +126,7 @@ def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 
         scaled_score = scale_zscore(zscore, mean, std)
     else:
         scaled_score = np.NAN
-    return zscore, scaled_score
+    return zscore, scaled_score[0]
 
 def main():
     packagedir = os.path.dirname(os.path.realpath(__file__))
@@ -113,13 +154,14 @@ def main():
     if not args.mmr:
         print("MMR status of cell line is considered as 0 (MMR deficient)")
 
-    
     # Load the model
     model_dict = load_model(modeldir)
+    
     # Predict
     zscore, scaled_score = predict(args.insert, args.pbs, args.rtt, args.mmr, model_dict, mean = args.mean, std = args.std)
     
     print(f'Insertion of {args.insert} \n Z-score: {zscore[0]} \n Scaled score based on provided mean and standard deviation {scaled_score}')
 
 if __name__ == '__main__':
+    pandarallel.initialize()
     main()
