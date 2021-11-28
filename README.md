@@ -38,16 +38,15 @@ We want to insert ATAACTTCGRATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK
 Optionally, since we are not only interested in the predicted Z-score, but also want to get a feeling for what insertion rate this corresponds to, we input our expected average insertion rate and standard deviation based on previous experiences. During screens, we measured a mean insertion rate of 4.86 and a standard deviation of 4.28.
 
 ![Alt Text](img/input_explanation.png)
-
 Command line:
 ```
 python minsepie.py -i ATAACTTCGRATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 ```
 Output:
 ```
-Prediction model MinsePIE_v2.sav \
-Insertion of ATAACTTCGRATAATGTGATGCTATACGAAGTTAT \
-Z-score: -0.5092334747314453 \
+Prediction model MinsePIE_v2.sav
+Insertion of ATAACTTCGRATAATGTGATGCTATACGAAGTTAT
+Z-score: -0.5092334747314453
 Scaled score based on provided mean and standard deviation 2.680480718612671
 ```
 
