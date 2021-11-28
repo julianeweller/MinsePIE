@@ -1,11 +1,9 @@
 # MinsePIE  &nbsp; :pie:
 
-**Modelling insertion efficiency for Prime Insertion Experiments**
-</br>
-</br>
+### Modelling insertion efficiency for Prime Insertion Experiments
+
 ![Alt Text](img/minsepie_animation.gif)
-</br>
-</br>
+</br></br>
 Writing short sequences into the genome with prime eiditng  faciliates protein tagging, correction of pathogenic deletions and many more exciting applications. We studied the features that influence insertion efficiency and built a model to predict insertion rates based on the insert sequence. This helps users to choose optimal contructs for DNA insertion with prime editing. 
 
 The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666 insert sequences up to 69 nt in length in four genomic sites (CLYBL, EMX1, FANCF, HEK3) in three human cell lines, using the PE2 prime editing system.
@@ -15,7 +13,7 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 - Python 3.8
 - Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0), pickle (3.10.0), RNAlib-2.4.18: https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html
 
-**Usage guide**
+### Usage guide
 
 Input:
 - sequence to be inserted (5' to 3' on target site)
@@ -37,7 +35,8 @@ We want to insert ATAACTTCGRATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK
 
 Optionally, since we are not only interested in the predicted Z-score, but also want to get a feeling for what insertion rate this corresponds to, we input our expected average insertion rate and standard deviation based on previous experiences. During screens, we measured a mean insertion rate of 4.86 and a standard deviation of 4.28.
 
-![Alt Text](img/input_explanation.png)
+<img src="img/input_explanation.png" />
+
 Command line:
 ```
 python minsepie.py -i ATAACTTCGRATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
@@ -50,7 +49,7 @@ Z-score: -0.5092334747314453
 Scaled score based on provided mean and standard deviation 2.680480718612671
 ```
 
-**Reference**
+## Reference
 
 Predicting efficiency of writing short sequences into the genome using prime editing </br>
 Jonas Koeppel, Elin Madli Peets, Juliane Weller, Ananth Pallaseni, Fabio Liberante, Leopold Parts </br>
