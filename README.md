@@ -18,7 +18,7 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 **Usage guide**
 
 Input:
-- sequence to be inserted (5' to 3')
+- sequence to be inserted (5' to 3' on target site)
 - primer binding site and reverse transcriptase template (if target site on forward strand: respective 5' to 3' sequence on target site, otherwise the reverse complement in 5' to 3'; without insert sequence)
 - MMR status of the cell line (default: MMR deficient)
 - optional: expected mean and standard deviation for editing events in the experimental setup
@@ -28,8 +28,28 @@ Output:
 - optional: Conversion of z-score into insertion efficiency [%] based on expected mean and standard deviation for editing events in the experimental setup
 
 Command line:
-
+```
 python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence]  -m [mmr status of cellline, default: 0] -a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]
+```
+**Usage example:**
+
+We want to insert ATAACTTCGRATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK293T cells. The chosen primer binding site (PBS) is CAGACTGAGCACG and the reverse transcriptase template (RTT) is TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA. Please note that this corresponds to the target site, the pegRNA is in reverse complement to these sequences. 
+
+Optionally, since we are not only interested in the predicted Z-score, but also want to get a feeling for what insertion rate this corresponds to, we input our expected average insertion rate and standard deviation based on previous experiences. During screens, we measured a mean insertion rate of 4.86 and a standard deviation of 4.28.
+
+![Alt Text](img/input_explanation.png)
+
+Command line:
+```
+python minsepie.py -i ATAACTTCGRATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
+```
+Output:
+```
+Prediction model MinsePIE_v2.sav \
+Insertion of ATAACTTCGRATAATGTGATGCTATACGAAGTTAT \
+Z-score: -0.5092334747314453 \
+Scaled score based on provided mean and standard deviation 2.680480718612671
+```
 
 **Reference**
 
