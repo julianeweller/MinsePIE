@@ -11,7 +11,7 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 **System requirements**
 
 - Python 3.8
-- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0), pickle (3.10.0), RNAlib-2.4.18: https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html
+- Python packages: biopython (1.79), scikit-learn (0.24.2), scipy (1.5.3), XGBoost (1.4.0), pickle (3.10.0), regex (2021.8.3 ), RNAlib-2.4.18: https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html
 
 ### Usage guide
 
