@@ -161,7 +161,10 @@ def main():
     # Predict
     zscore, scaled_score = predict(args.insert, args.pbs, args.rtt, args.mmr, model_dict, mean = args.mean, std = args.std)
     
-    print(f'Insertion of {args.insert} \n Z-score: {zscore[0]} \n Scaled score based on provided mean and standard deviation {scaled_score}')
+    if (args.mean is not None) and (args.std is not None):
+        print(f'Insertion of {args.insert} \n Z-score: {zscore[0]} \n Scaled score based on provided mean and standard deviation {scaled_score}')
+    else:
+        print(f'Insertion of {args.insert} \n Z-score: {zscore[0]}')
 
 if __name__ == '__main__':
     pandarallel.initialize()
