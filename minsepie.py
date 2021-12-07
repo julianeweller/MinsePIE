@@ -125,7 +125,8 @@ def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 
     if (mean is not None) and (std is not None):
         scaled_score = scale_zscore(zscore, mean, std)
     else:
-        scaled_score = np.NAN
+        scaled_score = [np.NAN,np.NAN]
+    
     return zscore, scaled_score[0]
 
 def main():
