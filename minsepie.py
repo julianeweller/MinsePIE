@@ -118,7 +118,7 @@ def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 
     # get features
     request = enhance_feature_df(request)
     # choose model
-    print(f'Prediction model {model}')
+    #print(f'Prediction model {model}')
     pred_model = model_dict[model]
     # predict
     zscore = pred_model.predict(xgb.DMatrix(request[features]))
