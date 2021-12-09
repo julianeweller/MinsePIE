@@ -51,11 +51,6 @@ def load_model(modeldir):
     return model_dict
 
 # Generate features
-def create_feature_df(insert, rtt, pbs, mmr):
-    """Generates a pandas dataframe based on the user's input."""
-    df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr}, index=[0])
-    return df
-
 def enhance_feature_df(df, seq = 'insert', ext = 'extension', full = 'full'):
     """Calculates relevant features based on insert sequence, RTT, PBS and MMR status."""
     # Generate sequences
@@ -107,27 +102,26 @@ def scale_zscore(zscore, mean, std):
     zscaled = zscore * std + mean
     return zscaled
 
-def predict(insert, pbs, rtt, mmr, model_dict, mean = None, std = None, model = 'MinsePIE_v2.sav'):
+def init_df(insert, pbs, rtt, mmr, mean, std):
+    # make dataframe
+    """Generates a pandas dataframe based on the user's input."""
+    df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
+    return(df)
+
+def predict(df, model_dict, model = 'MinsePIE_v2.sav'):
     """Uses the loaded model to predict insertion efficiency from an input sequence."""
     features = ['length', 'smaller3',  'percGC', 'percG', 'percC', 'percT', 'percA', 
     'countG',  'countT', 'countC', 'countA', 'Crun_ext', 'Arun_ext', 'Trun_ext', 'Grun_ext',
     'VF_insert', 'VF_full', 'VF_ext', 'Tm_NN_ext', 'mmr']
 
-    # make dataframe
-    request = create_feature_df(insert, rtt, pbs, mmr)
-    # get features
-    request = enhance_feature_df(request)
     # choose model
     #print(f'Prediction model {model}')
     pred_model = model_dict[model]
     # predict
-    zscore = pred_model.predict(xgb.DMatrix(request[features]))
-    if (mean is not None) and (std is not None):
-        scaled_score = scale_zscore(zscore, mean, std)
-    else:
-        scaled_score = [np.NAN,np.NAN]
-    
-    return zscore, scaled_score[0]
+    df['zscore']= pred_model.predict(xgb.DMatrix(df[features]))
+    df['percIns_predicted'] = df['zscore'] * df['std'] + df['mean']
+
+    return df
 
 def main():
     packagedir = os.path.dirname(os.path.realpath(__file__))
@@ -143,12 +137,14 @@ def main():
     
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')    
+    # pegRNA properties
     required.add_argument('-i', '--insert', dest = 'insert', type = str, help ='Insert seuquence', required=True)
     required.add_argument('-p', '--pbs', dest = 'pbs', type = str, help = 'Primer binding site of pegRNA', required=True)
     required.add_argument('-r', '--rtt', dest = 'rtt', type = str, help = 'Reverse transcriptase template of pegRNA', required=True)
+    # Experiment properties
     optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
-    optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = None,help ='Expected mean editing efficiency for experimental setup')
-    optional.add_argument('-s', '--std', dest = 'std', type = float, default = None,help ='Expected standard deviation for editing efficiency of experimental setup')
+    optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
+    optional.add_argument('-s', '--std', dest = 'std', type = float, default = np.NAN,help ='Expected standard deviation for editing efficiency of experimental setup')
     
     # Parse the CLI:
     args = parser.parse_args()
@@ -158,14 +154,21 @@ def main():
     # Load the model
     model_dict = load_model(modeldir)
     
+    # Create the dataframe
+    request = init_df(args.insert, args.pbs, args.rtt, args.mmr, args.mean, args.std)
+    request = enhance_feature_df(request)
+
     # Predict
-    zscore, scaled_score = predict(args.insert, args.pbs, args.rtt, args.mmr, model_dict, mean = args.mean, std = args.std)
+    request = predict(request, model_dict)
+
+    zscore = request['zscore'][0]
+    scaledz = request['percIns_predicted'][0]
     
-    if (args.mean is not None) and (args.std is not None):
-        print(f'Insertion of {args.insert} \n Z-score: {zscore[0]} \n Scaled score based on provided mean and standard deviation {scaled_score}')
+    if (args.mean is not np.NAN) and (args.std is not np.NAN):
+        print(f'Insertion of {args.insert} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
     else:
-        print(f'Insertion of {args.insert} \n Z-score: {zscore[0]}')
+        print(f'Insertion of {args.insert} \n Z-score: {zscore}')
 
 if __name__ == '__main__':
-    pandarallel.initialize()
+    pandarallel.initialize(verbose = 1)
     main()
