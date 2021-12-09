@@ -2,7 +2,8 @@ import pickle
 import regex as re
 from Bio.SeqUtils import MeltingTemp as mt
 import RNA
-import os, glob
+import os
+import glob
 import pandas as pd
 import numpy as np
 import argparse
@@ -105,6 +106,8 @@ def main_batchinsert():
     else:
         request[['insert','zscore']].to_csv(outpath)
         print(n3_largest[['insert','zscore']])
+    
+    print(f'Prediction results are saved as {outpath}.')
 
 
 if __name__ == '__main__':
