@@ -67,7 +67,7 @@ python minsepie-batchinsert.py -i [path to input file] -p [PBS sequence] -r [RTT
 ```
 
 **Example**
-In this example we want to add a His6-tag into the HEK3 locus in HEK293T cells. We compare 64 codon variants for the His6 tag with a combination of CAC and CAT codons (see file "his6_codonvariants.csv" which serves as input). 
+In this example we want to add a His6-tag into the HEK3 locus in HEK293T cells. We compare 64 codon variants for the His6 tag with a combination of CAC and CAT codons (see example/his6_codonvariants.csv which serves as input). 
 
 <img src="img/his6_codonvariants_table.png" />
 
@@ -80,15 +80,16 @@ Command line:
 python minsepie-batchinsert.py -i his6_codonvariants.csv -p cagactgagcacg -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -o . -a 4.86 -s 4.28
 ```
 Output:
-The three inserts with the highest predicted insertion rate will be displayed. The full prediction is saved as table in the defined output directory.
+The three inserts with the highest predicted insertion rate will be displayed. The full prediction is saved as table in the defined output directory (see example/his6_codonvariants_predictions.csv).
 ```
 MMR status of cell line is considered as 0 (MMR deficient)
                 insert    zscore  percIns_predicted
 0   CACCACCACCACCACCAC  2.288961          14.656754
 1   CATCACCACCACCACCAC  1.784901          12.499376
 32  CACCACCACCACCACCAT  1.784901          12.499376
-Prediction results are saved as /Users/jw38/Onedrive/Prime_editing_efficiencies/follow_up/test/all_his_minsepie.csv.
+Prediction results are saved as his6_codonvariants_minsepie.csv.
 ```
+<img src="img/his6_codonvariants_predictions.png" />
 
 ## Reference
 
