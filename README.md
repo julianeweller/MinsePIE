@@ -80,7 +80,7 @@ Command line:
 python minsepie-batchinsert.py -i his6_codonvariants.csv -p cagactgagcacg -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -o . -a 4.86 -s 4.28
 ```
 Output:
-The three inserts with the highest predicted insertion rate will be displayed. The full prediction is saved as table in the defined output directory (see example/his6_codonvariants_predictions.csv).
+The three inserts with the highest predicted insertion rate will be displayed.
 ```
 MMR status of cell line is considered as 0 (MMR deficient)
                 insert    zscore  percIns_predicted
@@ -89,6 +89,7 @@ MMR status of cell line is considered as 0 (MMR deficient)
 32  CACCACCACCACCACCAT  1.784901          12.499376
 Prediction results are saved as his6_codonvariants_minsepie.csv.
 ```
+The full prediction is saved as table in the defined output directory (see example/his6_codonvariants_predictions.csv).
 <img src="img/his6_codonvariants_predictions.png" />
 
 ## Reference
