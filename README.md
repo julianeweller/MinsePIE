@@ -32,7 +32,7 @@ python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence]  -m 
 ```
 **Example**
 
-We want to insert ATAACTTCGRATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK293T cells. The chosen primer binding site (PBS) is CAGACTGAGCACG and the reverse transcriptase template (RTT) is TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA. Please note that this corresponds to the target site, the pegRNA is in reverse complement to these sequences. 
+We want to insert ATAACTTCGATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK293T cells. The chosen primer binding site (PBS) is CAGACTGAGCACG and the reverse transcriptase template (RTT) is TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA. Please note that this corresponds to the target site, the pegRNA is in reverse complement to these sequences. 
 
 Optionally, since we are not only interested in the predicted Z-score, but also want to get a feeling for what insertion rate this corresponds to, we input our expected average insertion rate and standard deviation based on previous experiences. During screens, we measured a mean insertion rate of 4.86 and a standard deviation of 4.28.
 
@@ -40,13 +40,14 @@ Optionally, since we are not only interested in the predicted Z-score, but also 
 
 Command line:
 ```
-python minsepie.py -i ATAACTTCGRATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
+python minsepie.py -i ATAACTTCGATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 ```
 Output:
 ```
-Insertion of ATAACTTCGRATAATGTGATGCTATACGAAGTTAT
-Z-score: -0.5092334747314453
-Scaled score based on provided mean and standard deviation 2.680480718612671
+MMR status of cell line is considered as 0 (MMR deficient)
+Insertion of ATAACTTCGATAATGTGATGCTATACGAAGTTAT 
+Z-score: -0.4582706391811371 
+Scaled score based on provided mean and standard deviation 2.898601664304733
 ```
 ### Batch mode
 The batch mode is useful for evaluating different insert sequences into the same locus and where the pegRNA therefore has the same primer binding site and reverse transcription template for all insert sequences.
