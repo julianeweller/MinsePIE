@@ -33,20 +33,6 @@ def add_batchinfo(df, pbs, rtt, mmr, mean = None, std = None):
     df['std'] = std
     return (df)
 
-def predict(df, model_dict, model = 'MinsePIE_v2.sav'):
-    """Uses the loaded model to predict insertion efficiency from an input sequence."""
-    features = ['length', 'smaller3',  'percGC', 'percG', 'percC', 'percT', 'percA', 
-    'countG',  'countT', 'countC', 'countA', 'Crun_ext', 'Arun_ext', 'Trun_ext', 'Grun_ext',
-    'VF_insert', 'VF_full', 'VF_ext', 'Tm_NN_ext', 'mmr']
-
-    # choose model
-    #print(f'Prediction model {model}')
-    pred_model = model_dict[model]
-    # predict
-    df['zscore']= pred_model.predict(xgb.DMatrix(df[features]))
-    df['percIns_predicted'] = df['zscore'] * df['std'] + df['mean']
-
-    return df
 
 def main_batchinsert():
     packagedir = os.path.dirname(os.path.realpath(__file__))
@@ -63,10 +49,10 @@ def main_batchinsert():
     optional = parser.add_argument_group('optional arguments')    
     # all the inserts will have the same RTT, PBS and MMR status
     required.add_argument('-i', '--input', dest = 'input', type = validate_table, help ='Path to csv or tsv table with insert sequences', required=True)
-    required.add_argument('-p', '--pbs', dest = 'pbs', type = str, help = 'Primer binding site of pegRNA', required=True)
-    required.add_argument('-r', '--rtt', dest = 'rtt', type = str, help = 'Reverse transcriptase template of pegRNA', required=True)
+    required.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA', required=True)
+    required.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA', required=True)
     required.add_argument('-o', '--outdir', dest = 'outdir', type = dir_path, help ='Path to output directory', required=True)
-    optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
+    optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line. 0: deficient, 1: proficient')
     # All are expected to have the same experimental mean and standard deviation
     optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
     optional.add_argument('-s', '--std', dest = 'std', type = float, default = np.NAN,help ='Expected standard deviation for editing efficiency of experimental setup')
@@ -113,7 +99,3 @@ def main_batchinsert():
 if __name__ == '__main__':
     pandarallel.initialize(verbose = 1)
     main_batchinsert()
-
-    # test with this code:
-    # python minsepie-batchinsert.py -i /Users/jw38/Onedrive/Prime_editing_efficiencies/follow_up/all_his.tsv -p cagactgagcacg -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -o /Users/jw38/Onedrive/Prime_editing_efficiencies/follow_up/test/
-

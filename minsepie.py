@@ -38,7 +38,19 @@ def get_vf(x):
     else:
         return vf[1]
 
-
+# functions to validate input
+def validate_nt(string):
+    try:
+        string = str(string)
+    except: 
+        raise argparse.ArgumentTypeError(f"Input must be string.")
+    
+    # Check if input only contains valid nucleotides    
+    if re.search('[^aAgGcCtT]', string):
+        wrongletter = re.search('[^aAgGcCtT]', string)
+        raise argparse.ArgumentTypeError(f"Your input should only contain the nucleotides A, T, G, and C (upper or lower case). Other letters are not accepted. Your input contains {wrongletter.group()} at position {wrongletter.span()[1]}.")
+    else:
+        return string
 # Load model
 def load_model(modeldir):
     """Loads the models from a directory into a dictionary. Returns dictionary."""
@@ -138,9 +150,9 @@ def main():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')    
     # pegRNA properties
-    required.add_argument('-i', '--insert', dest = 'insert', type = str, help ='Insert seuquence', required=True)
-    required.add_argument('-p', '--pbs', dest = 'pbs', type = str, help = 'Primer binding site of pegRNA', required=True)
-    required.add_argument('-r', '--rtt', dest = 'rtt', type = str, help = 'Reverse transcriptase template of pegRNA', required=True)
+    required.add_argument('-i', '--insert', dest = 'insert', type = validate_nt, help ='Insert seuquence', required=True)
+    required.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA', required=True)
+    required.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA', required=True)
     # Experiment properties
     optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
     optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
@@ -150,7 +162,7 @@ def main():
     args = parser.parse_args()
     if not args.mmr:
         print("MMR status of cell line is considered as 0 (MMR deficient)")
-
+    
     # Load the model
     model_dict = load_model(modeldir)
     
