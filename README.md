@@ -109,8 +109,7 @@ To faciliate the usage, we provide a simple user interface that allows the same 
 pythonw minsepie_gui.py
 ```
 An application will open. First choose between single and batch mode, then fill in the required information for running MinsePIE. 
-<img src="img/gui_singlemode.png" />
-<img src="img/gui_batchmode.png" />
+<img src="img/gui_singlemode.png" width="300"/>  <img src="img/gui_batchmode.png" width="300"/>
 
 ## Reference
 
