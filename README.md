@@ -15,6 +15,15 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 
 ## Usage guide
 
+The MinsePIE tools are constantly improving. Therefore, it is recommended to run clone the github repository and update it frequently:
+
+```
+# clone
+git clone https://github.com/julianeweller/MinsePIE.git
+# update
+git pull
+```
+
 ### Single insert mode
 Input:
 - sequence to be inserted (5' to 3' on target site)
@@ -92,6 +101,16 @@ Prediction results are saved as his6_codonvariants_minsepie.csv.
 ```
 The full prediction is saved as table in the defined output directory (see example/his6_codonvariants_predictions.csv).
 <img src="img/his6_codonvariants_predictions.png" />
+
+### Running MinsePIE with a graphical user interface
+To faciliate the usage, we provide a simple user interface that allows the same functionalities as the command line tools. To use it, please install [Gooey v1.0.8] (https://pypi.org/project/Gooey/) and [Pythonw v.3.0.3] (https://pypi.org/project/pythonw/). To open the user interface run the following command:
+
+```
+pythonw minsepie_gui.py
+```
+An application will open. First choose between single and batch mode, then fill in the required information for running MinsePIE. 
+<img src="img/gui_singlemode.png" />
+<img src="img/gui_batchmode.png" />
 
 ## Reference
 
