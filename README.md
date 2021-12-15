@@ -79,7 +79,9 @@ python minsepie-batchinsert.py -i [path to input file] -p [PBS sequence] -r [RTT
 **Example**
 In this example we want to add a His6-tag into the HEK3 locus in HEK293T cells. We compare 64 codon variants for the His6 tag with a combination of CAC and CAT codons (see example/his6_codonvariants.csv which serves as input). 
 
-<img src="img/his6_codonvariants_table.png" />
+<p align="center">
+  <img src="img/his6_codonvariants_table.png" />
+</p>
 
 The chosen primer binding site (PBS) is CAGACTGAGCACG and the reverse transcriptase template (RTT) is TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA. Please note that this corresponds to the target site, the pegRNA is in reverse complement to these sequences (see single insert mode). 
 
@@ -100,7 +102,9 @@ MMR status of cell line is considered as 0 (MMR deficient)
 Prediction results are saved as his6_codonvariants_minsepie.csv.
 ```
 The full prediction is saved as table in the defined output directory (see example/his6_codonvariants_predictions.csv).
-<img src="img/his6_codonvariants_predictions.png" />
+<p align="center">
+  <img src="img/his6_codonvariants_predictions.png" />
+</p>
 
 ### Running MinsePIE with a graphical user interface
 To faciliate the usage, we provide a simple user interface that allows the same functionalities as the command line tools. To use it, please install [Gooey v1.0.8] (https://pypi.org/project/Gooey/) and [Pythonw v.3.0.3] (https://pypi.org/project/pythonw/). To open the user interface run the following command:
@@ -109,8 +113,11 @@ To faciliate the usage, we provide a simple user interface that allows the same 
 pythonw minsepie_gui.py
 ```
 An application will open. First choose between single and batch mode, then fill in the required information for running MinsePIE. 
-<img src="img/gui_singlemode.png" />
-<img src="img/gui_batchmode.png" />
+
+<p align="center">
+  <img src="img/gui_singlemode.png" width="300"/> 
+  <img src="img/gui_batchmode.png" width="300"/>
+</p>
 
 ## Reference
 
