@@ -1,4 +1,4 @@
-# Setting up your environment to run MinsePIE
+# Setting up your environment to run MinsePIE
 
 ## Create environment
 conda create --name pie2 python=3.8 --no-default-packages
