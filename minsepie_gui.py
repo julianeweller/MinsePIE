@@ -68,7 +68,7 @@ def ArgParse():
                 'test': "set(user_input).issubset(['A','a','T','t','G','g','C','c']) == True",
                 'message': 'Only use standard DNA nucleotides: A, T, C and G.'
             }})
-    subparser_1.add_argument('-m', '--mmr', metavar = 'Mismatch repair proficiency of cell line', type = int, default = 0, help ='MMR status of cell line. 0: deficient, 1: proficient.')  #choices=[0, 1], 
+    subparser_1.add_argument('-m', '--mmr', metavar = 'Mismatch repair proficiency of cell line', choices=[0, 1], type = int, default = 0, help ='MMR status of cell line. 0: deficient, 1: proficient.')  #choices=[0, 1], 
     subparser_1.add_argument('-a', '--mean', metavar ='Expected mean editing rate', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
     subparser_1.add_argument('-s', '--std', metavar ='Expected standard deviation of editing rate', type = float, default = np.NAN,help ='Expected standard deviation for editing efficiency of experimental setup')
 
@@ -79,11 +79,13 @@ def ArgParse():
     subparser_2.add_argument("outdir", metavar = 'Output directory', type = str, widget="DirChooser")
     subparser_2.add_argument('rtt', metavar = 'RTT', type = str, help = 'Reverse transcriptase template of pegRNAs')
     # subparser_2.add_argument('-o', '--outdir', dest = 'outdir', type = dir_path, help ='Path to output directory', required=True)
-    subparser_2.add_argument('-m', '--mmr', metavar ='Mismatch repair', type = int, default = 0,help ='proficiency of cell line, 0: deficient, 1: proficient')
+    subparser_2.add_argument('-m', '--mmr', metavar ='Mismatch repair', type = int, default = 0, choices=[0, 1], help ='proficiency of cell line, 0: deficient, 1: proficient', widget = 'Button')
     subparser_2.add_argument('-a', '--mean', metavar = 'Expected mean editing rate', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
     subparser_2.add_argument('-s', '--std', metavar = 'Expected standard deviation of editing rate', type = float, default = np.NAN,help ='Expected standard deviation for editing efficiency of experimental setup')
     
     args = parser.parse_args()
+
+
     return args
 
 def main():
