@@ -26,6 +26,7 @@ git clone https://github.com/julianeweller/MinsePIE.git
 git pull
 ```
 
+
 ### Single insert mode
 Input:
 - sequence to be inserted (5' to 3' on target site)
@@ -41,6 +42,8 @@ Command line:
 ```
 python minsepie.py -i [insert sequence] -p [PBS sequence] -r [RTT sequence]  -m [mmr status of cellline, default: 0] -a [optional: expected mean editing efficiency] -s [optional: expected standard deviation]
 ```
+If you encounter problems setting up the environment or packages, please check out the detailed description for installing the packages in the [scripts folder](https://github.com/julianeweller/MinsePIE/tree/main/scripts).
+
 **Example**
 
 We want to insert ATAACTTCGATAATGTGATGCTATACGAAGTTAT into the HEK3 locus in HEK293T cells. The chosen primer binding site (PBS) is CAGACTGAGCACG and the reverse transcriptase template (RTT) is TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA. Please note that this corresponds to the target site, the pegRNA is in reverse complement to these sequences. 
@@ -120,6 +123,8 @@ An application will open. First choose between single and batch mode, then fill 
   <img src="img/gui_singlemode.png" width="300"/> 
   <img src="img/gui_batchmode.png" width="300"/>
 </p>
+
+If you encounter problems setting up the environment or packages, please check out the detailed description for installing the packages in the [scripts folder](https://github.com/julianeweller/MinsePIE/tree/main/scripts).
 
 ## Reference
 
