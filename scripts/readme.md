@@ -1,21 +1,41 @@
-# Setting up your environment to run MinsePIE
-If you have troubles running the MinsePIE script, please check that you have the correct version of the packages. You can also use the here provided yaml file or follow the instructions to set up a clean environment.
+# Setting up an environment to run MinsePIE
+The instructions below enable you to create a minimal conda-based virtual environment to run MinsePIE. 
+If you have trouble running MinsePIE, please check that you have the correct versions of the packages installed (see below).
 
-## Create environment
-conda create --name pie2 python=3.8 --no-default-packages \
-conda activate pie2 \
+## Install conda
+On MacOS, run:
+```
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+sh Miniconda3-latest-MacOSX-x86_64.sh
+```
+
+On Linux, run:
+```
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+sh Miniconda3-latest-Linux-x86_64.sh
+```
+
+## Create conda environment
+```
+conda create --name pie2 python=3.8 --no-default-packages
+conda activate pie2
+```
 
 ## Install packages
-conda install sys \
-conda install regex \
-conda install pandas \
-conda install -c conda-forge xgboost \
-pip install pandarallel \
-conda install -c bioconda viennarna \
-conda install -c conda-forge biopython \
+```
+conda install sys regex pandas
+conda install -c conda-forge biopython xgboost
+conda install -c bioconda viennarna
+pip install pandarallel
+```
+## Run MinsePIE
+See main [README](/README.md).
 
+Don't forget to deactivate your conda environment when you are finished running MinsePIE
+`conda deactivate`
 
-## Resulting environment
+## Environment packages
+If you are having issues running MinsePIE, check the output of `conda list` matches the minimal MinsePIE environment below.
 ```
 #Name                    Version                   Build  Channel
 _py-xgboost-mutex         2.0                       cpu_0    conda-forge
