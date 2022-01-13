@@ -109,7 +109,7 @@ The full prediction is saved as table in the defined output directory (see examp
 </p>
 
 ### Running MinsePIE with a graphical user interface
-To faciliate the usage, we provide a simple user interface that allows the same functionalities as the command line tools. To use it, please install [Gooey v1.0.8] (https://pypi.org/project/Gooey/) and [Pythonw v.3.0.3] (https://pypi.org/project/pythonw/). To open the user interface run the following command:
+To facilitate the usage, we provide a simple user interface that allows the same functionalities as the command line tools. To use it, please install [Gooey v1.0.8] (https://pypi.org/project/Gooey/) and [Pythonw v.3.0.3] (https://pypi.org/project/pythonw/). To open the user interface run the following command:
 
 ```
 pythonw minsepie_gui.py
