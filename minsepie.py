@@ -9,6 +9,11 @@ import argparse
 import xgboost as xgb
 from pandarallel import pandarallel
 
+from Bio.Data.IUPACData import ambiguous_dna_values
+from itertools import product
+from datetime import datetime
+
+
 # Getting features as functions
 def reverse_complement(seq):
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A','a': 't', 'c': 'g', 'g': 'c', 't': 'a'}
@@ -37,6 +42,9 @@ def get_vf(x):
         return 0
     else:
         return vf[1]
+def extend_ambiguous_dna(seq):
+   """return list of all possible sequences given an ambiguous DNA input"""
+   return [ list(map("".join, product(*map(ambiguous_dna_values.get, seq)))) ]
 
 # functions to validate input
 def validate_nt(string):
@@ -46,11 +54,17 @@ def validate_nt(string):
         raise argparse.ArgumentTypeError(f"Input must be string.")
     
     # Check if input only contains valid nucleotides    
-    if re.search('[^aAgGcCtT]', string):
-        wrongletter = re.search('[^aAgGcCtT]', string)
-        raise argparse.ArgumentTypeError(f"Your input should only contain the nucleotides A, T, G, and C (upper or lower case). Other letters are not accepted. Your input contains {wrongletter.group()} at position {wrongletter.span()[1]}.")
+    # if re.search('[^aAgGcCtT]', string):
+    if re.search('[^AGCTGATCRYWSMKHBVDN]', string, re.IGNORECASE):
+        wrongletter = re.search('[^AGCTGATCRYWSMKHBVDN]', string, re.IGNORECASE)
+        raise argparse.ArgumentTypeError(f"Your input should only contain IUPAC nucleotides (upper or lower case). Other letters are not accepted. Your input contains {wrongletter.group()} at position {wrongletter.span()[1]}.")
     else:
         return string
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError
 # Load model
 def load_model(modeldir):
     """Loads the models from a directory into a dictionary. Returns dictionary."""
@@ -117,7 +131,17 @@ def scale_zscore(zscore, mean, std):
 def init_df(insert, pbs, rtt, mmr, mean, std):
     # make dataframe
     """Generates a pandas dataframe based on the user's input."""
-    df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
+    # Check for ambiguous insert sequence
+    if re.match(".*[GATCRYWSMKHBVDN].*",insert, re.IGNORECASE):
+        # If ambigious, find all possibilities and explode dataframe
+        insertlist = extend_ambiguous_dna(insert)
+        print(insertlist)
+        df = pd.DataFrame(data= {'insert' : insertlist, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
+        df = df.explode('insert')
+    else:
+        # Generate dataframe with one insert
+        df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
+
     return(df)
 
 def predict(df, model_dict, model = 'MinsePIE_v2.sav'):
@@ -153,6 +177,7 @@ def main():
     required.add_argument('-i', '--insert', dest = 'insert', type = validate_nt, help ='Insert seuquence', required=True)
     required.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA', required=True)
     required.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA', required=True)
+    optional.add_argument('-o', '--outdir', dest = 'outdir', type = dir_path, help ='Path to output directory', required=False)
     # Experiment properties
     optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
     optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
@@ -173,13 +198,31 @@ def main():
     # Predict
     request = predict(request, model_dict)
 
-    zscore = request['zscore'][0]
-    scaledz = request['percIns_predicted'][0]
-    
-    if (args.mean is not np.NAN) and (args.std is not np.NAN):
-        print(f'Insertion of {args.insert} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
+    # Print result
+    if request.size > 1:
+        # Sort by z-score and return value for all 
+        request = request.sort_values(by='zscore', ascending=False)
+        # iterate through rows and return value
+        if (args.mean is not np.NAN) and (args.std is not np.NAN):
+            print(request[['insert','zscore', 'percIns_predicted']].head(10))
+        else:
+            print(request[['insert','zscore']].head(10))
+        print("Up to top 10 inserts are printed. If you expect a longer list, please provide an output directory.")
     else:
-        print(f'Insertion of {args.insert} \n Z-score: {zscore}')
+        zscore = request['zscore'][0]
+        scaledz = request['percIns_predicted'][0]
+        if (args.mean is not np.NAN) and (args.std is not np.NAN):
+            print(f'Insertion of {args.insert} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
+        else:
+            print(f'Insertion of {args.insert} \n Z-score: {zscore}')
+    # Save result if outdir given
+    if (args.outdir is not np.NAN):
+        now = datetime.now()
+        dt_string = now.strftime("%Y%m%d-%H%M%S")
+        print(dt_string)
+        outfile = dt_string + '_minsepie_prediction.csv'
+        outpath = os.path.join(args.outdir,outfile)
+        request[['insert','zscore', 'percIns_predicted']].to_csv(outpath)
 
 if __name__ == '__main__':
     pandarallel.initialize(verbose = 1)
