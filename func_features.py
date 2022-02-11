@@ -1,10 +1,12 @@
 import regex as re
 from Bio.SeqUtils import MeltingTemp as mt
 import RNA
-# import pandas as pd
+import pandas as pd
 import numpy as np
 from Bio.Data.IUPACData import ambiguous_dna_values
 from itertools import product
+import itertools
+import more_itertools
 
 
 # Getting features as functions
@@ -55,14 +57,16 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
     """Generates a pandas dataframe based on the user's input."""    
     allinserts = []
     for insert in inserts: 
-        if re.match(".*[GATCRYWSMKHBVDN].*",insert, re.IGNORECASE):
+        if re.match(".*[RYWSMKHBVDN].*",insert, re.IGNORECASE):
             # If ambigious, find all possibilities and explode dataframe
             insertlist = extend_ambiguous_dna(insert)
             allinserts.extend(insertlist)
         else:
-            allinserts.extend(insert)
+            allinserts.extend([insert])
     # create dataframe with all (exploded) inserts
-    allinserts = list(itertools.chain.from_iterable(allinserts))
+    # allinserts = list(itertools.chain.from_iterable(allinserts)) # this doesn't work
+    allinserts = list(more_itertools.collapse(allinserts))
+    print(allinserts)
     df = pd.DataFrame(allinserts, columns =['insert'])
     # add all the batch information
     df = add_batchinfo(df, spacer, pbs, rtt, mmr, mean = None, std = None)
@@ -82,7 +86,7 @@ def extend_ambiguous_dna(seq):
    return list(map("".join, product(*map(ambiguous_dna_values.get, seq))))
 
 def extend_nt(df):
-    df['seqlist'] = df.insert.apply(lambda x: extend_ambiguous_dna(x))
+    df['seqlist'] = df['insert'].apply(lambda x: extend_ambiguous_dna(x))
     df = df.explode('seqlist')
     df = df.rename(columns = {'insert': 'inputsequence', 'seqlist': 'insert'})
     return df

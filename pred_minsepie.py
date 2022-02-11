@@ -6,6 +6,23 @@ from func_features import *
 from func_score import *
 from pandarallel import pandarallel
 from datetime import datetime
+import pandas as pd
+import itertools
+
+import regex as re
+from Bio.SeqUtils import MeltingTemp as mt
+import RNA
+import os, glob
+import pandas as pd
+import numpy as np
+import argparse
+import xgboost as xgb
+from pandarallel import pandarallel
+
+from Bio.Data.IUPACData import ambiguous_dna_values
+from itertools import product
+from datetime import datetime
+
 
 # python pred_minsepie.py single -i ATAACTTCGATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTT CGATAATGTGATGCT ATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
@@ -79,7 +96,7 @@ def main():
             args.mmr = defaults['mmr']
 
     # Retrieve pegRNA features from input
-    if (args.rtt is not None) and (args.pbs is not None) and (args.spacer is not None):
+    if (args.rtt is not None) and (args.pbs is not None): # and (args.spacer is not None)
         pass
     elif args.fasta is not None:
         try:
@@ -100,6 +117,7 @@ def main():
     # Create the dataframe
     if args.command == 'single':
         request = init_df(args.insert, args.spacer, args.pbs, args.rtt, args.mmr, args.mean, args.std)
+        print(request)
     elif args.command == 'batch':
         request = read_table(args.input)
         # Add the batch information

@@ -1,5 +1,4 @@
 from ctypes import ArgumentError
-from msilib.schema import Error
 import pickle
 import regex as re
 from Bio.SeqUtils import MeltingTemp as mt
@@ -76,7 +75,7 @@ def validate_nt(input):
     """ Make sure input is a list and contains valid nucleotides or amino acids."""
 
     # Everything should be unique nucleotides
-    if all(bool(re.search('[^AGCT]', item, re.IGNORECASE)) == False for item in input) == False:
+    if all(bool(re.search('[^AGCT\{\}]', item, re.IGNORECASE)) == False for item in input) == False:
         raise argparse.ArgumentTypeError(f"Your input should only contain IUPAC nucleotides (upper or lower case) or amino acids.")
     else:
         return input
@@ -98,7 +97,6 @@ def validate_table(file):
 
 def validate_fasta(input):
     if type(input) == str:
-        print(input)
         if (input.endswith(".fasta") or input.endswith(".txt") or input.endswith(".rtf")):
             with open(input) as handle:
                 n = 0
@@ -106,12 +104,10 @@ def validate_fasta(input):
                     seq = record.seq
                     n += 1
                     if n == 1:
-                        print(seq)
                         return seq
                     else:
                         pass
         else:
-            print("else")
             validate_nt(input) # returns input
     else:
         raise argparse.ArgumentTypeError("Please provide sequence string or fasta file.")
