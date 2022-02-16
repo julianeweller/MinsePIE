@@ -66,7 +66,6 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
     # create dataframe with all (exploded) inserts
     # allinserts = list(itertools.chain.from_iterable(allinserts)) # this doesn't work
     allinserts = list(more_itertools.collapse(allinserts))
-    print(allinserts)
     df = pd.DataFrame(allinserts, columns =['insert'])
     # add all the batch information
     df = add_peginfo(df, spacer, rtt, pbs)
