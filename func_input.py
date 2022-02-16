@@ -43,7 +43,7 @@ def parse_args(defaults, cellchoices):
         
     ### Batch mode for several target sites
     batch_parser = subparser.add_parser('batch', help='Predict insertion rates for a different target sites')
-    batch_parser.add_argument('-i', '--insert', dest = 'insert', type = validate_table, help ='Path to csv or tsv table with insert sequences and pegRNA features', required=True) # this is the file with all the features
+    batch_parser.add_argument('-i', '--insert', dest = 'insert', type = validate_table, help ='Path to csv/tsv/txt table with insert sequences and pegRNA features', required=True) # this is the file with all the features
     # this is not yet implemented, but idea is to have several bracket annotations where the inserts can be inserted when the features are not given in the table   
     batch_parser.add_argument('-f', '--fasta', dest = 'fasta', type = validate_fasta, help = 'Target sequence with brackets for place of insertion')
     batch_parser.add_argument('-rl', '--rttlen', dest = 'rttlen', type = str, default = defaults['rttlen'], help = 'Length of RTT')
@@ -129,6 +129,8 @@ def read_table(filepath):
         request = pd.read_csv(filepath)
     elif filepath.endswith('.tsv'):
         request = pd.read_csv(filepath, sep='\t')
+    elif filepath.endswith('.txt'):
+        request = pd.read_csv(filepath, sep='\t')
     else:
-        raise ArgumentError("There was an error reading in the input file. Please check the format.")
+        raise ArgumentError("There was an error reading in the input file. Please check the format (either .csv, .tsv or .txt).")
     return request
