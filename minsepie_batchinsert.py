@@ -48,7 +48,7 @@ def main_batchinsert():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')    
     # all the inserts will have the same RTT, PBS and MMR status
-    required.add_argument('-i', '--input', dest = 'input', type = validate_table, help ='Path to csv or tsv table with insert sequences', required=True)
+    required.add_argument('-i', '--input', dest = 'input', type = validate_table, help ='Path to csv/tsv/txt table with insert sequences', required=True)
     required.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA', required=True)
     required.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA', required=True)
     required.add_argument('-o', '--outdir', dest = 'outdir', type = dir_path, help ='Path to output directory', required=True)
