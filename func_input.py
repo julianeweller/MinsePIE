@@ -20,13 +20,15 @@ def parse_args(defaults, cellchoices):
     # Have subparsers for different modes
     subparser = parser.add_subparsers(dest='command')
 
-    # Single target site mode
+    ### Single target site mode
     single_parser = subparser.add_parser('single', help='Predict insertion rates for a single target site')
+
     single_parser.add_argument('-i', '--insert', dest = 'insert', type = validate_seq, nargs='+', help ='Insert seuquence', required=True) # this can be list
     single_parser.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA')
     single_parser.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA')
     single_parser.add_argument('-g', '--spacer', dest = 'spacer', type = validate_nt, help = 'Spacer of pegRNA')
     single_parser.add_argument('-f', '--fasta', dest = 'fasta', type = validate_fasta, help = 'Target sequence with brackets for place of insertion')
+    
     single_parser.add_argument('-rl', '--rttlen', dest = 'rttlen', type = str, default = defaults['rttlen'], help = 'Length of RTT')
     single_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of RTT')
     single_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of RTT')
@@ -39,12 +41,12 @@ def parse_args(defaults, cellchoices):
     single_parser.add_argument('-a', '--mean', dest = 'mean', type = float, default = defaults['mean'], help ='Expected mean editing efficiency for experimental setup', required=False)
     single_parser.add_argument('-s', '--std', dest = 'std', type = float, default = defaults['std'], help ='Expected standard deviation for editing efficiency of experimental setup', required=False)
         
-    # Batch mode with file input
+    ### Batch mode for several target sites
     batch_parser = subparser.add_parser('batch', help='Predict insertion rates for a different target sites')
-    batch_parser.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA')
-    batch_parser.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA')
-    batch_parser.add_argument('-g', '--spacer', dest = 'spacer', type = validate_nt, help = 'Spacer of pegRNA')
+
+    batch_parser.add_argument('-i', '--insert', dest = 'insert', type = validate_seq, nargs='+', help ='Insert seuquence', required=True) # this can be list
     batch_parser.add_argument('-f', '--fasta', dest = 'fasta', type = validate_fasta, help = 'Target sequence with brackets for place of insertion')
+
     batch_parser.add_argument('-rl', '--rttlen', dest = 'rttlen', type = str, default = defaults['rttlen'], help = 'Length of RTT')
     batch_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of RTT')
     batch_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of RTT')
@@ -108,7 +110,7 @@ def validate_fasta(input):
                     else:
                         pass
         else:
-            validate_nt(input) # returns input
+            return(validate_nt(input)) # returns input
     else:
         raise argparse.ArgumentTypeError("Please provide sequence string or fasta file.")
 

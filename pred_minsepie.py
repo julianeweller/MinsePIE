@@ -26,13 +26,17 @@ from datetime import datetime
 
 # python pred_minsepie.py single -i ATAACTTCGATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTT CGATAATGTGATGCT ATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
-# python pred_minsepie.py single -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f AAAAAAAACGTGCAGTCGTCGATGC{}ACTCGGAAACCCGGGTTTAAACCCGGGTTTAAACCGGGTTTAAAC
+# python pred_minsepie.py single -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f AAAAAAAACGTGCAGTCGTCGATGC{}ACTCGGAAACCCGGGTTTAAACCCGGGTTTAAACCGGGTTTAAAC -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f ./examples/shortsequence.fasta
+# python pred_minsepie.py batch -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f ./examples/shortsequence.fasta
 
-# ToDos
+
+
+######## ToDos
 # allow for inserts that are not at the nicking site
+# batch mode for several target sites (file with all kind of inputs + all bracket locations from fasta)
 
-# Done
+######## Done
 # look up cell lines
 # allow for list
 # allow for ambigious sequences
@@ -117,7 +121,6 @@ def main():
     # Create the dataframe
     if args.command == 'single':
         request = init_df(args.insert, args.spacer, args.pbs, args.rtt, args.mmr, args.mean, args.std)
-        print(request)
     elif args.command == 'batch':
         request = read_table(args.input)
         # Add the batch information
@@ -153,7 +156,7 @@ def main():
         # Sort by z-score and return value for all 
         request = request.sort_values(by='zscore', ascending=False)
         # iterate through rows and return value
-        if (args.mean is not None) and (args.std is not None):
+        if (args.mean is int) and (args.std is int):
             print(request[['insert','zscore', 'percIns_predicted']].head(10))
         else:
             print(request[['insert','zscore']].head(10))
@@ -161,7 +164,7 @@ def main():
     else:
         zscore = request['zscore'][0]
         scaledz = request['percIns_predicted'][0]
-        if (args.mean is not None) and (args.std is not None):
+        if (args.mean is int) and (args.std is int):
             print(f'Insertion of {args.insert[0]} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
         else:
             print(f'Insertion of {args.insert[0]} \n Z-score: {zscore}')

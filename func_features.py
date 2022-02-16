@@ -69,7 +69,7 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
     print(allinserts)
     df = pd.DataFrame(allinserts, columns =['insert'])
     # add all the batch information
-    df = add_batchinfo(df, spacer, pbs, rtt, mmr, mean = None, std = None)
+    df = add_batchinfo(df, spacer, pbs, rtt, mmr, mean, std)
     return(df)
 
 def add_batchinfo(df, spacer, pbs, rtt, mmr, mean = None, std = None):
