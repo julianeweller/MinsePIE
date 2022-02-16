@@ -69,13 +69,20 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
     print(allinserts)
     df = pd.DataFrame(allinserts, columns =['insert'])
     # add all the batch information
-    df = add_batchinfo(df, spacer, pbs, rtt, mmr, mean, std)
+    df = add_peginfo(df, spacer, rtt, pbs)
+    df = add_batchinfo(df, mmr, mean, std)
     return(df)
 
 def add_batchinfo(df, mmr, mean = None, std = None):
     df['mmr'] = mmr
     df['mean'] = mean
     df['std'] = std
+    return (df)
+
+def add_peginfo(df, spacer, rtt, pbs):
+    df['spacer'] = spacer
+    df['RTT'] = rtt
+    df['PBS'] = pbs
     return (df)
 
 def extend_ambiguous_dna(seq):
