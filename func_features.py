@@ -72,10 +72,7 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
     df = add_batchinfo(df, spacer, pbs, rtt, mmr, mean, std)
     return(df)
 
-def add_batchinfo(df, spacer, pbs, rtt, mmr, mean = None, std = None):
-    df['spacer'] = spacer
-    df['PBS'] = pbs
-    df['RTT'] = rtt
+def add_batchinfo(df, mmr, mean = None, std = None):
     df['mmr'] = mmr
     df['mean'] = mean
     df['std'] = std

@@ -23,13 +23,12 @@ from Bio.Data.IUPACData import ambiguous_dna_values
 from itertools import product
 from datetime import datetime
 
-
+######## Examples
 # python pred_minsepie.py single -i ATAACTTCGATAATGTGATGCTATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTT CGATAATGTGATGCT ATACGAAGTTAT -p CAGACTGAGCACG -r TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f AAAAAAAACGTGCAGTCGTCGATGC{}ACTCGGAAACCCGGGTTTAAACCCGGGTTTAAACCGGGTTTAAAC -a 4.86 -s 4.28
 # python pred_minsepie.py single -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f ./examples/shortsequence.fasta
-# python pred_minsepie.py batch -i ATAACTTC GATAATGTGATG CTATACGAAGTTAT -f ./examples/shortsequence.fasta
-
+# python pred_minsepie.py batch -i ./examples/his6_codonvariants_batchinput.csv -a 4.86 -s 4.28
 
 
 ######## ToDos
@@ -87,9 +86,10 @@ def main():
 
     # Get input arguments
     args = parse_args(defaults, cellchoices)
+    print(args)
 
     # Define mmr status
-    if not args.mmr:
+    if not args.mmr in [0,1]:
         """If mmr status is given, this will be used. otherwise, if cell line is given, mmr status will be concluded. If neither is given, assume that cell line is mismatch repair proficient"""
         if args.cell:
             try: 
@@ -100,21 +100,21 @@ def main():
             args.mmr = defaults['mmr']
 
     # Retrieve pegRNA features from input
-    if (args.rtt is not None) and (args.pbs is not None): # and (args.spacer is not None)
-        pass
-    elif args.fasta is not None:
-        try:
-            args.spacer, args.rtt, args.pbs = get_pegrna(args.fasta, args.rttlen, args.pbslen, args.spclen)
-        except:
-            raise argparse.ArgumentError("Please check your target site input and define the input position with brackets.")
-    else:
-        # see if the pegRNA features are in csv file
-        if args.command == 'batch':
-            # care about those features later
-            pass 
+    if args.command == 'single':
+        if (args.rtt is not None) and (args.pbs is not None): # and (args.spacer is not None)
+            pass
+        elif args.fasta is not None:
+            try:
+                args.spacer, args.rtt, args.pbs = get_pegrna(args.fasta, args.rttlen, args.pbslen, args.spclen)
+            except:
+                raise argparse.ArgumentError("Please check your target site input and define the input position with brackets.")
         else:
             raise argparse.ArgumentError("Please provide either a target sequence as fasta or the PBS, RTT and spacer sequence.")
     
+    elif args.command == 'batch':
+        # care about those features later
+        pass 
+
     # Load the model
     model_dict = load_model(modeldir)
     
@@ -122,20 +122,19 @@ def main():
     if args.command == 'single':
         request = init_df(args.insert, args.spacer, args.pbs, args.rtt, args.mmr, args.mean, args.std)
     elif args.command == 'batch':
-        request = read_table(args.input)
+        request = read_table(args.insert)
         # Add the batch information
-        if (args.rtt is not None) and (args.pbs is not None) and (args.spacer is not None):
-            request = add_batchinfo(request, args.spacer, args.pbs, args.rtt, args.mmr, args.mean, args.std)
-        else:
-            # check if the information has been in the csv file
-            if len(request.columns) > 4:
-                # make sure the naming fo columns is correct
-                request = request.rename(columns={request.columns[0]: "insert", request.columns[1]: "spacer" , request.columns[2]: "RTT", request.columns[3]: "PBS" }, inplace = True)
-                request['mmr'] = args.mmr
-                request['mean'] = args.mean
-                request['std'] = args.std
-            else:
-                raise error("Something with the input file seems wrong.")
+        if len(request.columns) == 4:
+            # assume that the user filled the table correctly with all features
+            # make sure the naming for columns is correct
+            request.rename(columns={request.columns[0]: "insert", request.columns[1]: "spacer" , request.columns[2]: "RTT", request.columns[3]: "PBS" }, inplace = True)
+            request = add_batchinfo(request, args.mmr, args.mean, args.std)
+        elif len(request.columns) == 1:
+            # in this case the user only gives inserts. So try to retrieve the features from the fasta file
+            try:
+                raise error("This is not implemented yet")
+            except:
+                raise error("Couldn't retrieve the pegRNA features from the fasta file.")
     else:
         raise argparse.ArgumentError("something went wrong with the input modes.")
 
@@ -155,16 +154,24 @@ def main():
     if len(request.index) > 1:
         # Sort by z-score and return value for all 
         request = request.sort_values(by='zscore', ascending=False)
-        # iterate through rows and return value
-        if (args.mean is int) and (args.std is int):
-            print(request[['insert','zscore', 'percIns_predicted']].head(10))
+        if args.command == 'batch':
+            # iterate through rows and return value
+            if (type(args.mean) is float) and (type(args.std) is float):
+                print(request[['insert','spacer', 'RTT','PBS', 'zscore', 'percIns_predicted']].head(10))
+            else:
+                print(request[['insert','spacer', 'RTT','PBS','zscore']].head(10))
+            print("Up to top 10 inserts are printed. If you expect a longer list, please provide an output directory.")
         else:
-            print(request[['insert','zscore']].head(10))
-        print("Up to top 10 inserts are printed. If you expect a longer list, please provide an output directory.")
+            # iterate through rows and return value
+            if (type(args.mean) is float) and (type(args.std) is float):
+                print(request[['insert','zscore', 'percIns_predicted']].head(10))
+            else:
+                print(request[['insert','zscore']].head(10))
+            print("Up to top 10 inserts are printed. If you expect a longer list, please provide an output directory.")
     else:
         zscore = request['zscore'][0]
         scaledz = request['percIns_predicted'][0]
-        if (args.mean is int) and (args.std is int):
+        if (type(args.mean) is float) and (type(args.std) is float):
             print(f'Insertion of {args.insert[0]} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
         else:
             print(f'Insertion of {args.insert[0]} \n Z-score: {zscore}')
