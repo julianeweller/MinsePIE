@@ -15,7 +15,7 @@ from minsepie import *
 def validate_table(file):
     if not os.path.exists(file):
         raise argparse.ArgumentTypeError(f"{file} does not exist")
-    if not (file.endswith('.tsv') or file.endswith('.csv')):
+    if not (file.endswith('.tsv') or file.endswith('.csv') or file.endswith('.txt')):
         raise argparse.ArgumentTypeError(f"{file} is not the right format. Supply as {suffixes[0]} or {suffixes[1]}")
     return file
 
@@ -69,6 +69,8 @@ def main_batchinsert():
     if args.input.endswith('.csv'):
         request = pd.read_csv(args.input, header = None, names = ['insert'])
     elif args.input.endswith('.tsv'):
+        request = pd.read_csv(args.input, header = None, sep='\t', names = ['insert'])
+    elif args.input.endswith('.txt'):
         request = pd.read_csv(args.input, header = None, sep='\t', names = ['insert'])
     else:
         print("There was an error reading in the input file. Please check the format.")
