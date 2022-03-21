@@ -7,6 +7,7 @@ from Bio.Data.IUPACData import ambiguous_dna_values
 from itertools import product
 import itertools
 import more_itertools
+from pandarallel import pandarallel
 
 
 # Getting features as functions
@@ -127,8 +128,6 @@ def extend_aa(df):
     df = df.rename(columns = {'insert': 'protein', 'dnalist': 'insert'})
     return df
 
-def cellline2mmr(cline, clinedict):
-    return clinedict[cline]
 
 def get_pegrna(seq, rttlen, pbslen, spclen):
     seq = str(seq)
@@ -166,6 +165,7 @@ def get_pegrna(seq, rttlen, pbslen, spclen):
 # Generate features
 def enhance_feature_df(df, seq = 'insert', ext = 'extension', full = 'full') -> pd.DataFrame:
     """Calculates relevant features based on insert sequence, RTT, PBS and MMR status."""
+    pandarallel.initialize(progress_bar=False)
     # Generate sequences
     df[seq] = df[seq].astype('str')
     df['RTT_rc'] = df['RTT'].apply(lambda x: reverse_complement(x))
