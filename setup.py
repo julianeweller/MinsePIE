@@ -26,6 +26,7 @@ setuptools.setup(
         'xgboost>=1.4',
         'datetime',
         'pandarallel>=1.6',
-        'more-itertools>=8.12'
+        'more-itertools>=8.12',
+        'viennarna'
     ]
 )
