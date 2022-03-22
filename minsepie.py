@@ -2,6 +2,9 @@ from func_features import *
 from func_input import *
 from func_score import *
 
+
+# predict(['TGTCA'], pbs = 'CAGACTGAGCACG', rtt = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
+
 def predict(insert, fasta = None, pbs = None, rtt = None, spacer = None,  pbslen = 13, rttlen = 15, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None):
     """ Predicts editing outcomes for insert sequences based on pegRNA features given individually or determined from fasta sequence. """
     # Clean up variables
@@ -55,3 +58,60 @@ def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
     mmr_status = int(cellline_dict[cellline])
     return mmr_status
 
+def val_seq(input: list) -> list:
+    """ Raises an error if input is not a list that contains valid nucleotides or amino acid letters."""
+
+    # Everything should be either IUPAC for nucleotides or amino acids
+    if all(bool(re.search('[^-\*AGCTGRYWSMKHBVDNDEFHIKLMNPQV]', item, re.IGNORECASE)) == False for item in input) == False:
+        raise argparse.ArgumentTypeError(f"Your input should only contain IUPAC nucleotides (upper or lower case) or amino acids.")
+    else:
+        return input
+
+def val_nt(input: str) -> str:
+    """ Raises an error if input is not a valid nucleotide sequence. """
+
+    # Everything should be unique nucleotides
+    if all(bool(re.search('[^AGCT\{\}]', item, re.IGNORECASE)) == False for item in input) == False:
+        raise argparse.ArgumentTypeError(f"Your input should only contain the IUPAC nucleotides A, C, T and G.")
+    else:
+        return input
+
+def val_dir(string: str) -> str:
+    """Check that provided string is a directory."""
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError
+
+def val_table(file: str) -> str:
+    """Validates that provided file endswith with correct file extension."""
+    suffixes = ['.csv', '.tsv', 'txt']
+    if not os.path.exists(file):
+        raise argparse.ArgumentTypeError(f"{file} does not exist")
+    if not (file.endswith(suffixes[0]) or (file.endswith(suffixes[1]) or file.endswith(suffixes[2]))):
+        raise argparse.ArgumentTypeError(f"{file} is not the right format. Supply as {suffixes[0]} or {suffixes[1]} or {suffixes[2]}")
+    return file
+
+def val_fasta(input: str) -> str:
+    """Reads in fasta or text file and returns a nucleotide sequence that corresponds to the target site. Only the first record of the file is used."""
+    if type(input) == str:
+        if (input.endswith(".fasta") or input.endswith(".txt") or input.endswith(".rtf") or input.endswith(".fa")):
+            with open(input) as handle:
+                n = 0
+                for record in SeqIO.FastaIO.FastaTwoLineIterator(handle):
+                    seq = record.seq
+                    n += 1
+                    if n == 1:
+                        return seq
+                    else:
+                        pass
+        else:
+            return(validate_nt(input)) # returns input
+    else:
+        raise argparse.ArgumentTypeError("Please provide sequence string or fasta file.")
+
+
+def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
+    cellline_dict = load_celllines(file, head)
+    mmr_status = int(cellline_dict[cellline])
+    return mmr_status
