@@ -17,8 +17,8 @@ sh Miniconda3-latest-Linux-x86_64.sh
 
 ## Create conda environment
 ```
-conda create --name pie2 python=3.8 --no-default-packages
-conda activate pie2
+conda create --name pie38 python=3.8 --no-default-packages
+conda activate pie38
 ```
 
 ## Install packages
