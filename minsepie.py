@@ -2,23 +2,23 @@ from func_features import *
 from func_input import *
 from func_score import *
 
+# minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
 
-# predict(['TGTCA'], pbs = 'CAGACTGAGCACG', rtt = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
-
-def predict(insert, fasta = None, pbs = None, rtt = None, spacer = None,  pbslen = 13, rttlen = 15, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None):
+def predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  pbslen = 13, halen = 15, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None):
+    pandarallel.initialize()
     """ Predicts editing outcomes for insert sequences based on pegRNA features given individually or determined from fasta sequence. """
     # Clean up variables
     if model == None:
-        model = 'MinsePIE_v2.sav'
+        model = 'MinsePIE_v3.sav'
     if inputmode == None:
         inputmode = 'dna'
 
     # Retrieve pegRNA features
-    if (rtt is not None) and ((pbs is not None) and (spacer is not None)):
+    if (ha is not None) and ((pbs is not None) and (spacer is not None)):
         pass
     elif fasta is not None:
         try:
-            spacer, rtt, pbs = get_pegrna(fasta, rttlen, pbslen, spclen)
+            spacer, ha, pbs = get_pegrna(fasta, halen, pbslen, spclen)
         except:
             raise ArgumentError("Please check your target site input and define the input position with brackets.")
     else:
@@ -32,8 +32,7 @@ def predict(insert, fasta = None, pbs = None, rtt = None, spacer = None,  pbslen
     model_dict = load_model('./models/')
     
     # Create the dataframe
-    request = init_df(insert, spacer, pbs, rtt, mmr, mean, std)
-
+    request = init_df(insert, spacer, pbs, ha, mmr, mean, std)
 
     # We have the basic table with sequences now, but if it's an amino acid sequence, we need to convert it to DNA, or if it's DNA we need to accept ambigiuity
     if inputmode == 'protein':
@@ -106,10 +105,9 @@ def val_fasta(input: str) -> str:
                     else:
                         pass
         else:
-            return(validate_nt(input)) # returns input
+            return(val_nt(input)) # returns input
     else:
         raise argparse.ArgumentTypeError("Please provide sequence string or fasta file.")
-
 
 def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
     cellline_dict = load_celllines(file, head)

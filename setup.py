@@ -20,13 +20,17 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'numpy',
-        'pandas',
+        'pandas>=1.3',
+        'regex>=2021.8'
         'scikit-learn>=0.24',
         'biopython>=1.79',
         'xgboost>=1.4',
+        'scipy>=1.5',
         'datetime',
         'pandarallel>=1.6',
         'more-itertools>=8.12',
-        'viennarna'
+        'viennarna>=2.5.0a1',
+        'psutil',
+        'more_itertools>=8.12.0'
     ]
 )

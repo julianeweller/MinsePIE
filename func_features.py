@@ -5,37 +5,77 @@ import pandas as pd
 import numpy as np
 from Bio.Data.IUPACData import ambiguous_dna_values
 from itertools import product
-import itertools
 import more_itertools
-from pandarallel import pandarallel
+import math
+import Bio
+from joblib import delayed, Parallel
+import random
 
-
-# Getting features as functions
+# Getting features as functions for sequence features
 def reverse_complement(seq):
-    """ Get the reverse complement for DNA."""
+    """Returns the reverse complement of the sequence."""
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A','a': 't', 'c': 'g', 'g': 'c', 't': 'a'}
-    rc = "".join(complement.get(base, base) for base in reversed(seq))
+    try:
+        rc = "".join(complement.get(base, base) for base in reversed(seq))
+    except:
+        print(seq)
     return rc
+
+def complement(seq):
+    """Returns the reverse complement of the sequence."""
+    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A','a': 't', 'c': 'g', 'g': 'c', 't': 'a'}
+    try:
+        c = "".join(complement.get(base, base) for base in seq)
+    except:
+        print(seq)
+    return c
 
 def get_length(x):
     """ Calculate length."""
     return len(x)
+def get_countN(x,n):
+    """Count the number of nucleotide n in the string."""
+    return x.upper().count(n.upper())
+def get_Ncomp(x, n):
+    if n == 'GC':
+        return (get_countN(x,'G') + get_countN(x,'C')) / len(x)
+    else:
+        return get_countN(x,n) / len(x)
 
-def get_smaller3(x):
-    """ Returns True if length shorter than 3 nucleotides. """
-    if len(x) <=3:
+def get_Nrun_max(x,n):
+    """Find all consecutive occurences of n and maximum length"""
+    my_regex = r"(?i)" + n + n + "+"
+    try:
+        return max([len(i) for i in re.findall(my_regex, x)])
+    except:
+        return 0
+
+def pair_bases_pos(s1, s2, pos):
+    """Pairing the n nucleotide after the nicking site with the first nucleotide of the insert"""    
+    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'} 
+    s1 = s1 + "T" # spacer + start of scaffold
+    base1 = s1[(-3+pos)].upper()
+    base2 = s2[pos].upper()
+    
+    if base2 == complement[base1]:
         return True
     else:
         return False
 
-def get_countN(x,n):
-    """ Counts the occurence of variable n in x."""
-    return x.upper().count(n.upper())
+def pairing_bases(seq, spacer, pbs):
+    if len(seq) <= 3:
+        x = spacer + "GTN&" + reverse_complement(pbs + seq + 'NNN')
+    else:
+        x = spacer + "GTN&" + reverse_complement(pbs + seq[:3] + 'NNN')
+    brackets = str(RNA.cofold(x)[0])
+    count = brackets.count("(", 17, 20)
+    return count
 
-def get_Nrun(x,n):
-    """ Returns True if sequence has run of n in x. """
-    my_regex = r"(?i)" + n + "+" + n + n + n
-    if bool(re.search(my_regex, x)) == True:
+def loop1_intact(seq):
+    scaffold = 'gttttagagctagaaatagcaagttaaaataaggctagtccgttatcaacttgaaaaagtggcaccgagtcggtgc'
+    x = scaffold + 'NNN&' + reverse_complement(seq)
+    brackets = RNA.cofold(x)[0]
+    if brackets[0:30] == "(((((((.((((....))))...)))))))":
         return True
     else:
         return False
@@ -52,9 +92,11 @@ def get_vf(x):
     else:
         return vf[1]
         
+def DNA(length):
+    return ''.join(random.choice('CGTA') for _ in range(length))
 
 # Set up data
-def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
+def init_df(inserts, spacer, pbs, ha, mmr, mean, std):
     """Generates a pandas dataframe based on the user's input."""    
     allinserts = []
     for insert in inserts: 
@@ -65,11 +107,10 @@ def init_df(inserts, spacer, pbs, rtt, mmr, mean, std):
         else:
             allinserts.extend([insert])
     # create dataframe with all (exploded) inserts
-    # allinserts = list(itertools.chain.from_iterable(allinserts)) # this doesn't work
     allinserts = list(more_itertools.collapse(allinserts))
     df = pd.DataFrame(allinserts, columns =['insert'])
     # add all the batch information
-    df = add_peginfo(df, spacer, rtt, pbs)
+    df = add_peginfo(df, spacer, ha, pbs)
     df = add_batchinfo(df, mmr, mean, std)
     return(df)
 
@@ -79,10 +120,10 @@ def add_batchinfo(df, mmr, mean = None, std = None):
     df['std'] = std
     return (df)
 
-def add_peginfo(df, spacer, rtt, pbs):
-    df['spacer'] = spacer
-    df['RTT'] = rtt
-    df['PBS'] = pbs
+def add_peginfo(df, spacer, ha, pbs):
+    df['spacer'] = str(spacer).upper()
+    df['HA'] = str(ha).upper()
+    df['PBS'] = str(pbs).upper()
     return (df)
 
 def extend_ambiguous_dna(seq):
@@ -128,8 +169,7 @@ def extend_aa(df):
     df = df.rename(columns = {'insert': 'protein', 'dnalist': 'insert'})
     return df
 
-
-def get_pegrna(seq, rttlen, pbslen, spclen):
+def get_pegrna(seq, halen, pbslen, spclen):
     seq = str(seq)
     # find the first brackets {}
     try:
@@ -143,7 +183,7 @@ def get_pegrna(seq, rttlen, pbslen, spclen):
         pampos = re.search(r'.GG', seq[bracketpos+3:bracketpos+6]).start() + bracketpos + 3 # this is the first position of the pam
         # Generate features
         spacer = seq[pampos-spclen:pampos]
-        rtt = seq[pampos-3:pampos-3+rttlen]
+        ha = seq[pampos-3:pampos-3+halen]
         pbs = seq[pampos-3-pbslen:pampos-3]
     except:
         raise NotImplementedError('We currently do not accept inserts that are not at the nicking site.')
@@ -158,55 +198,53 @@ def get_pegrna(seq, rttlen, pbslen, spclen):
         # except ValueError:
         #     print("Could not find a Pam after indicated insertion position.")
 
-    return spacer, rtt, pbs
+    return spacer, ha, pbs
 
+def get_VF_baseline(df):
+    VF_baseline = {}
+    loi = list(set(df['length']))
+    #  Generate 1000 random sequences for each length of interest
+    for l in loi:
+        seqtemp = []
+        VF_baseline[l] = {}
+        for k in range(1000):
+            seqtemp.append(DNA(l))
+        # Calculate VF values for all those sequences per target site and append to list
+        for t in df['HA'].unique():
+            # For each RTT, create variableseq + RTT and calculate its VF value
+            VFtemp = Parallel(n_jobs=8)(delayed(get_vf)(j + t) for j in seqtemp)
+            # Calculate mean and std of the VF values
+            mean = np.mean(VFtemp)
+            std = np.std(VFtemp)
+            # append to dictionary
+            VF_baseline[l][t] = [mean, std]
+    # Create dataframe
+    baseline_df = pd.melt(pd.DataFrame.from_dict(VF_baseline, orient='index').reset_index(),id_vars=["index"]).rename(columns={'index': 'length','variable':'HA'})
+    baseline_df[['mean_RTT', 'std_RTT']] = baseline_df.value.values.tolist()
+    return baseline_df
 
-
-# Generate features
-def enhance_feature_df(df, seq = 'insert', ext = 'extension', full = 'full') -> pd.DataFrame:
-    """Calculates relevant features based on insert sequence, RTT, PBS and MMR status."""
-    pandarallel.initialize(progress_bar=False)
-    # Generate sequences
-    df[seq] = df[seq].astype('str')
-    df['RTT_rc'] = df['RTT'].apply(lambda x: reverse_complement(x))
-    df['PBS_rc'] = df['PBS'].apply(lambda x: reverse_complement(x))
-    df['insert_rc'] = df[seq].apply(lambda x: reverse_complement(x))
-    df[ext] = df['RTT_rc'] + df['insert_rc'] + df['PBS_rc']
-    df[full] = df['PBS'] + df[seq] + df['RTT']
-    # Length features
-    df['length'] = df[seq].apply(get_length)
-    df['length_ext'] = df[ext].apply(get_length)
-    df['smaller3'] = df[seq].apply(get_smaller3)
-    # Bases count
-    df['countC'] = df[seq].apply(lambda x: get_countN(x,'C'))
-    df['countG'] = df[seq].apply(lambda x: get_countN(x,'G'))
-    df['countA'] = df[seq].apply(lambda x: get_countN(x,'A'))
-    df['countT'] = df[seq].apply(lambda x: get_countN(x,'T'))
-    df['countC_ext'] = df[ext].apply(lambda x: get_countN(x,'C'))
-    df['countG_ext'] = df[ext].apply(lambda x: get_countN(x,'G'))
-    df['countA_ext'] = df[ext].apply(lambda x: get_countN(x,'A'))
-    df['countT_ext'] = df[ext].apply(lambda x: get_countN(x,'T'))
-    # Relative content
-    df['percC'] = df['countC'] / df['length'] *100
-    df['percG'] = df['countG'] / df['length'] *100
-    df['percA'] = df['countA'] / df['length'] *100
-    df['percT'] = df['countT'] / df['length'] *100
-    df['percC_ext'] = df['countC_ext'] / df['length_ext'] *100
-    df['percG_ext'] = df['countG_ext'] / df['length_ext'] *100
-    df['percA_ext'] = df['countA_ext'] / df['length_ext'] *100
-    df['percT_ext'] = df['countT_ext'] / df['length_ext'] *100
-    df['percGC'] = (df['countG'] + df['countC'])/df['length'] *100
-    df['percGC_ext'] = (df['countG_ext'] + df['countC_ext'])/df['length_ext'] *100
+def enhance_feature_df(df):
+    df['RTT'] = df['insert'] + df['HA']
+    # length features
+    df['length'] = df['insert'].apply(get_length)
+    df['length_RTT'] = df['RTT'].apply(get_length)
+    # Nucleotide composition
+    df['percA'] = df['insert'].apply(lambda x: get_Ncomp(x, 'A'))
+    df['percC'] = df['insert'].apply(lambda x: get_Ncomp(x, 'C'))
+    df['percT'] = df['insert'].apply(lambda x: get_Ncomp(x, 'T'))
     # Find runs
-    df['Arun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'A'))
-    df['Crun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'C'))
-    df['Trun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'T'))
-    df['Grun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'G'))
-    # Secondary structure
-    df['Tm_NN_ext'] = df[ext].parallel_apply(get_tm)
-    df['Tm_NN'] = df[seq].parallel_apply(get_tm)
-    df['VF_full'] = df[full].parallel_apply(get_vf)
-    df['VF_ext'] = df[ext].parallel_apply(get_vf)
-    df['VF_insert'] = df[seq].parallel_apply(get_vf)
+    df['Arun_maxlen'] = df['insert'].apply(lambda x: get_Nrun_max(x, 'A'))
+    # Pairing
+    df['pairedbases'] = df.apply(lambda x: pairing_bases(x['insert'], x['spacer'], x['PBS']), axis = 1)
+    df['pos1compl'] = df.apply(lambda x: pair_bases_pos(x['spacer'], x['RTT'], 0), axis=1)
+    df['loop1_intact'] = df['insert'].parallel_apply(loop1_intact)
+    # Structure
+    df['VF_RTT'] = df['RTT'].parallel_apply(get_vf)
+    # Normalized structure
+    VF_baseline = get_VF_baseline(df)
+    df = df.merge(VF_baseline[['mean_RTT', 'std_RTT','length','HA']], on = ['length','HA'], how = 'left')
+    df['VF_RTT_z'] = (df['VF_RTT'] - df['mean_RTT']) / df['std_RTT']
+    print(df[['VF_RTT', 'VF_RTT_z', 'mean_RTT', 'std_RTT']])
+    df['VF_RTT_z'] = df['VF_RTT_z'].apply(lambda x: 0 if math.isnan(x) else x)
+    df['VF_RTT_z'] = df['VF_RTT_z'].apply(lambda x: 0 if math.isinf(x) else x)
     return df
-
