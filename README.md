@@ -1,5 +1,8 @@
 # MinsePIE  &nbsp; :pie:
 
+
+We are currently updating this repository. Find the code for the manuscript resubmission in [scripts](https://github.com/julianeweller/MinsePIE/blob/main/scripts/modelling.py).
+
 ### Modelling insertion efficiency for Prime Insertion Experiments
 
 ![Alt Text](img/minsepie_animation.gif)
