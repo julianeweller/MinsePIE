@@ -1,229 +1,115 @@
-import pickle
-import regex as re
-from Bio.SeqUtils import MeltingTemp as mt
-import RNA
-import os, glob
-import pandas as pd
-import numpy as np
-import argparse
-import xgboost as xgb
-from pandarallel import pandarallel
+from func_features import *
+from func_input import *
+from func_score import *
 
-from Bio.Data.IUPACData import ambiguous_dna_values
-from itertools import product
-from datetime import datetime
+# minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
 
+def predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  pbslen = 13, halen = 15, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None):
+    pandarallel.initialize()
+    """ Predicts editing outcomes for insert sequences based on pegRNA features given individually or determined from fasta sequence. """
+    # Clean up variables
+    if model == None:
+        model = 'MinsePIE_v3.sav'
+    if inputmode == None:
+        inputmode = 'dna'
 
-# Getting features as functions
-def reverse_complement(seq):
-    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A','a': 't', 'c': 'g', 'g': 'c', 't': 'a'}
-    rc = "".join(complement.get(base, base) for base in reversed(seq))
-    return rc
-def get_length(x):
-    return len(x)
-def get_smaller3(x):
-    if len(x) <=3:
-        return True
+    # Retrieve pegRNA features
+    if (ha is not None) and ((pbs is not None) and (spacer is not None)):
+        pass
+    elif fasta is not None:
+        try:
+            spacer, ha, pbs = get_pegrna(fasta, halen, pbslen, spclen)
+        except:
+            raise ArgumentError("Please check your target site input and define the input position with brackets.")
     else:
-        return False
-def get_countN(x,n):
-    return x.upper().count(n.upper())
-def get_Nrun(x,n):
-    my_regex = r"(?i)" + n + "+" + n + n + n
-    if bool(re.search(my_regex, x)) == True:
-        return True
-    else:
-        return False
-def get_tm(x):
-    return mt.Tm_NN(x)
-def get_vf(x):
-    vf = RNA.fold(x)
-    if vf[1] == np.nan:
-        return 0
-    else:
-        return vf[1]
-def extend_ambiguous_dna(seq):
-   """return list of all possible sequences given an ambiguous DNA input"""
-   return [ list(map("".join, product(*map(ambiguous_dna_values.get, seq)))) ]
-
-# functions to validate input
-def validate_nt(string):
-    try:
-        string = str(string)
-    except: 
-        raise argparse.ArgumentTypeError(f"Input must be string.")
+        raise ArgumentError("Please provide either a target sequence as fasta or the PBS, RTT and spacer sequence.")
     
-    # Check if input only contains valid nucleotides    
-    # if re.search('[^aAgGcCtT]', string):
-    if re.search('[^AGCTGATCRYWSMKHBVDN]', string, re.IGNORECASE):
-        wrongletter = re.search('[^AGCTGATCRYWSMKHBVDN]', string, re.IGNORECASE)
-        raise argparse.ArgumentTypeError(f"Your input should only contain IUPAC nucleotides (upper or lower case). Other letters are not accepted. Your input contains {wrongletter.group()} at position {wrongletter.span()[1]}.")
+    # Retrieve mmr if mmr is not given
+    if mmr == None:
+        mmr = cellline2mmr(cellline, './celllines.csv', head = 'mmr')
+
+    # Load the model
+    model_dict = load_model('./models/')
+    
+    # Create the dataframe
+    request = init_df(insert, spacer, pbs, ha, mmr, mean, std)
+
+    # We have the basic table with sequences now, but if it's an amino acid sequence, we need to convert it to DNA, or if it's DNA we need to accept ambigiuity
+    if inputmode == 'protein':
+        request = extend_aa(request)
+    elif inputmode == 'dna':
+        request = extend_nt(request)
+    
+    # Calculate features
+    request = enhance_feature_df(request)
+
+    # Prediction
+    request = prediction(request, model_dict, model)
+
+    if not outdir == None:
+        outpath = os.path.join(outdir, datetime.now().strftime("%Y%m%d-%H%M%S") + '_minsepie_prediction.csv')
+        request[['insert','zscore', 'percIns_predicted']].to_csv(outpath, index = False)
+
+    return request
+
+def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
+    cellline_dict = load_celllines(file, head)
+    mmr_status = int(cellline_dict[cellline])
+    return mmr_status
+
+def val_seq(input: list) -> list:
+    """ Raises an error if input is not a list that contains valid nucleotides or amino acid letters."""
+
+    # Everything should be either IUPAC for nucleotides or amino acids
+    if all(bool(re.search('[^-\*AGCTGRYWSMKHBVDNDEFHIKLMNPQV]', item, re.IGNORECASE)) == False for item in input) == False:
+        raise argparse.ArgumentTypeError(f"Your input should only contain IUPAC nucleotides (upper or lower case) or amino acids.")
     else:
-        return string
-def dir_path(string):
+        return input
+
+def val_nt(input: str) -> str:
+    """ Raises an error if input is not a valid nucleotide sequence. """
+
+    # Everything should be unique nucleotides
+    if all(bool(re.search('[^AGCT\{\}]', item, re.IGNORECASE)) == False for item in input) == False:
+        raise argparse.ArgumentTypeError(f"Your input should only contain the IUPAC nucleotides A, C, T and G.")
+    else:
+        return input
+
+def val_dir(string: str) -> str:
+    """Check that provided string is a directory."""
     if os.path.isdir(string):
         return string
     else:
         raise NotADirectoryError
-# Load model
-def load_model(modeldir):
-    """Loads the models from a directory into a dictionary. Returns dictionary."""
-    modellist = [os.path.basename(d) for d in glob.glob(modeldir+  '/*.sav')]
-    model_dict = {}
-    for model in modellist:
-        modelpath = os.path.join(modeldir, model)
-        model_temp = pickle.load(open(modelpath, 'rb'))
-        model_dict[model] = model_temp
-    return model_dict
 
-# Generate features
-def enhance_feature_df(df, seq = 'insert', ext = 'extension', full = 'full'):
-    """Calculates relevant features based on insert sequence, RTT, PBS and MMR status."""
-    # Generate sequences
-    df[seq] = df[seq].astype('str')
-    df['RTT_rc'] = df['RTT'].apply(lambda x: reverse_complement(x))
-    df['PBS_rc'] = df['PBS'].apply(lambda x: reverse_complement(x))
-    df['insert_rc'] = df[seq].apply(lambda x: reverse_complement(x))
-    df[ext] = df['RTT_rc'] + df['insert_rc'] + df['PBS_rc']
-    df[full] = df['PBS'] + df[seq] + df['RTT']
-    # Length features
-    df['length'] = df[seq].apply(get_length)
-    df['length_ext'] = df[ext].apply(get_length)
-    df['smaller3'] = df[seq].apply(get_smaller3)
-    # Bases count
-    df['countC'] = df[seq].apply(lambda x: get_countN(x,'C'))
-    df['countG'] = df[seq].apply(lambda x: get_countN(x,'G'))
-    df['countA'] = df[seq].apply(lambda x: get_countN(x,'A'))
-    df['countT'] = df[seq].apply(lambda x: get_countN(x,'T'))
-    df['countC_ext'] = df[ext].apply(lambda x: get_countN(x,'C'))
-    df['countG_ext'] = df[ext].apply(lambda x: get_countN(x,'G'))
-    df['countA_ext'] = df[ext].apply(lambda x: get_countN(x,'A'))
-    df['countT_ext'] = df[ext].apply(lambda x: get_countN(x,'T'))
-    # Relative content
-    df['percC'] = df['countC'] / df['length'] *100
-    df['percG'] = df['countG'] / df['length'] *100
-    df['percA'] = df['countA'] / df['length'] *100
-    df['percT'] = df['countT'] / df['length'] *100
-    df['percC_ext'] = df['countC_ext'] / df['length_ext'] *100
-    df['percG_ext'] = df['countG_ext'] / df['length_ext'] *100
-    df['percA_ext'] = df['countA_ext'] / df['length_ext'] *100
-    df['percT_ext'] = df['countT_ext'] / df['length_ext'] *100
-    df['percGC'] = (df['countG'] + df['countC'])/df['length'] *100
-    df['percGC_ext'] = (df['countG_ext'] + df['countC_ext'])/df['length_ext'] *100
-    # Find runs
-    df['Arun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'A'))
-    df['Crun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'C'))
-    df['Trun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'T'))
-    df['Grun_ext'] = df[ext].apply(lambda x: get_Nrun(x,'G'))
-    # Secondary structure
-    df['Tm_NN_ext'] = df[ext].parallel_apply(get_tm)
-    df['Tm_NN'] = df[seq].parallel_apply(get_tm)
-    df['VF_full'] = df[full].parallel_apply(get_vf)
-    df['VF_ext'] = df[ext].parallel_apply(get_vf)
-    df['VF_insert'] = df[seq].parallel_apply(get_vf)
-    return df
+def val_table(file: str) -> str:
+    """Validates that provided file endswith with correct file extension."""
+    suffixes = ['.csv', '.tsv', 'txt']
+    if not os.path.exists(file):
+        raise argparse.ArgumentTypeError(f"{file} does not exist")
+    if not (file.endswith(suffixes[0]) or (file.endswith(suffixes[1]) or file.endswith(suffixes[2]))):
+        raise argparse.ArgumentTypeError(f"{file} is not the right format. Supply as {suffixes[0]} or {suffixes[1]} or {suffixes[2]}")
+    return file
 
-def scale_zscore(zscore, mean, std):
-    """Calculates the predicited insertion efficiency from the Z-score."""
-    zscaled = zscore * std + mean
-    return zscaled
-
-def init_df(insert, pbs, rtt, mmr, mean, std):
-    # make dataframe
-    """Generates a pandas dataframe based on the user's input."""
-    # Check for ambiguous insert sequence
-    if re.match(".*[GATCRYWSMKHBVDN].*",insert, re.IGNORECASE):
-        # If ambigious, find all possibilities and explode dataframe
-        insertlist = extend_ambiguous_dna(insert)
-        print(insertlist)
-        df = pd.DataFrame(data= {'insert' : insertlist, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
-        df = df.explode('insert')
-    else:
-        # Generate dataframe with one insert
-        df = pd.DataFrame(data= {'insert' : insert, 'RTT': rtt, 'PBS' : pbs, 'mmr': mmr, 'mean': mean, 'std': std}, index=[0])
-
-    return(df)
-
-def predict(df, model_dict, model = 'MinsePIE_v2.sav'):
-    """Uses the loaded model to predict insertion efficiency from an input sequence."""
-    features = ['length', 'smaller3',  'percGC', 'percG', 'percC', 'percT', 'percA', 
-    'countG',  'countT', 'countC', 'countA', 'Crun_ext', 'Arun_ext', 'Trun_ext', 'Grun_ext',
-    'VF_insert', 'VF_full', 'VF_ext', 'Tm_NN_ext', 'mmr']
-
-    # choose model
-    #print(f'Prediction model {model}')
-    pred_model = model_dict[model]
-    # predict
-    df['zscore']= pred_model.predict(xgb.DMatrix(df[features]))
-    df['percIns_predicted'] = df['zscore'] * df['std'] + df['mean']
-
-    return df
-
-def main():
-    packagedir = os.path.dirname(os.path.realpath(__file__))
-    modeldir = packagedir + '/models/'
-
-    try:
-        assert os.path.exists(modeldir)
-    except:
-        raise FileNotFoundError(f'Could not find saved models. Looked in: {modeldir}')
-
-    # Create the command line interface:
-    parser = argparse.ArgumentParser(description='Modeling insertion efficiencies for Prime Editing experiments')
-    
-    required = parser.add_argument_group('required arguments')
-    optional = parser.add_argument_group('optional arguments')    
-    # pegRNA properties
-    required.add_argument('-i', '--insert', dest = 'insert', type = validate_nt, help ='Insert seuquence', required=True)
-    required.add_argument('-p', '--pbs', dest = 'pbs', type = validate_nt, help = 'Primer binding site of pegRNA', required=True)
-    required.add_argument('-r', '--rtt', dest = 'rtt', type = validate_nt, help = 'Reverse transcriptase template of pegRNA', required=True)
-    optional.add_argument('-o', '--outdir', dest = 'outdir', type = dir_path, help ='Path to output directory', required=False)
-    # Experiment properties
-    optional.add_argument('-m', '--mmr', dest = 'mmr', type = int, default = 0,help ='MMR status of cell line')
-    optional.add_argument('-a', '--mean', dest = 'mean', type = float, default = np.NAN,help ='Expected mean editing efficiency for experimental setup')
-    optional.add_argument('-s', '--std', dest = 'std', type = float, default = np.NAN,help ='Expected standard deviation for editing efficiency of experimental setup')
-    
-    # Parse the CLI:
-    args = parser.parse_args()
-    if not args.mmr:
-        print("MMR status of cell line is considered as 0 (MMR deficient)")
-    
-    # Load the model
-    model_dict = load_model(modeldir)
-    
-    # Create the dataframe
-    request = init_df(args.insert, args.pbs, args.rtt, args.mmr, args.mean, args.std)
-    request = enhance_feature_df(request)
-
-    # Predict
-    request = predict(request, model_dict)
-
-    # Print result
-    if request.size > 1:
-        # Sort by z-score and return value for all 
-        request = request.sort_values(by='zscore', ascending=False)
-        # iterate through rows and return value
-        if (args.mean is not np.NAN) and (args.std is not np.NAN):
-            print(request[['insert','zscore', 'percIns_predicted']].head(10))
+def val_fasta(input: str) -> str:
+    """Reads in fasta or text file and returns a nucleotide sequence that corresponds to the target site. Only the first record of the file is used."""
+    if type(input) == str:
+        if (input.endswith(".fasta") or input.endswith(".txt") or input.endswith(".rtf") or input.endswith(".fa")):
+            with open(input) as handle:
+                n = 0
+                for record in SeqIO.FastaIO.FastaTwoLineIterator(handle):
+                    seq = record.seq
+                    n += 1
+                    if n == 1:
+                        return seq
+                    else:
+                        pass
         else:
-            print(request[['insert','zscore']].head(10))
-        print("Up to top 10 inserts are printed. If you expect a longer list, please provide an output directory.")
+            return(val_nt(input)) # returns input
     else:
-        zscore = request['zscore'][0]
-        scaledz = request['percIns_predicted'][0]
-        if (args.mean is not np.NAN) and (args.std is not np.NAN):
-            print(f'Insertion of {args.insert} \n Z-score: {zscore} \n Scaled score based on provided mean and standard deviation {scaledz}')
-        else:
-            print(f'Insertion of {args.insert} \n Z-score: {zscore}')
-    # Save result if outdir given
-    if (args.outdir is not np.NAN):
-        now = datetime.now()
-        dt_string = now.strftime("%Y%m%d-%H%M%S")
-        print(dt_string)
-        outfile = dt_string + '_minsepie_prediction.csv'
-        outpath = os.path.join(args.outdir,outfile)
-        request[['insert','zscore', 'percIns_predicted']].to_csv(outpath)
+        raise argparse.ArgumentTypeError("Please provide sequence string or fasta file.")
 
-if __name__ == '__main__':
-    pandarallel.initialize(verbose = 1)
-    main()
+def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
+    cellline_dict = load_celllines(file, head)
+    mmr_status = int(cellline_dict[cellline])
+    return mmr_status
