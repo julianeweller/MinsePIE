@@ -244,7 +244,6 @@ def enhance_feature_df(df):
     VF_baseline = get_VF_baseline(df)
     df = df.merge(VF_baseline[['mean_RTT', 'std_RTT','length','HA']], on = ['length','HA'], how = 'left')
     df['VF_RTT_z'] = (df['VF_RTT'] - df['mean_RTT']) / df['std_RTT']
-    print(df[['VF_RTT', 'VF_RTT_z', 'mean_RTT', 'std_RTT']])
     df['VF_RTT_z'] = df['VF_RTT_z'].apply(lambda x: 0 if math.isnan(x) else x)
     df['VF_RTT_z'] = df['VF_RTT_z'].apply(lambda x: 0 if math.isinf(x) else x)
     return df

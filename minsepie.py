@@ -113,3 +113,9 @@ def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
     cellline_dict = load_celllines(file, head)
     mmr_status = int(cellline_dict[cellline])
     return mmr_status
+
+def val_path(input: str) -> str:
+    if os.path.exists(input):
+        return input
+    else:
+        raise argparse.ArgumentTypeError(f"{input} does not exist. Please provide an existing path.")

@@ -28,6 +28,9 @@ The MinsePIE tools are constantly improving. Therefore, it is recommended to run
 git clone https://github.com/julianeweller/MinsePIE.git
 # update
 git pull
+# install MinsePIE: go into the folder with setup.py
+pip install .
+
 ```
 
 
