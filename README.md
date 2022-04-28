@@ -1,7 +1,5 @@
 # MinsePIE  &nbsp; :pie:
-
-
-We are currently updating this repository. Find the code for the manuscript resubmission in [scripts](https://github.com/julianeweller/MinsePIE/blob/main/scripts/modelling.py).
+Find the code for the manuscript resubmission in [scripts](https://github.com/julianeweller/MinsePIE/blob/main/scripts/modelling.py).
 
 ### Modelling insertion efficiency for Prime Insertion Experiments
 
@@ -14,7 +12,7 @@ The provided model "MinsePIE.sav" was trained on 22974 events: a libary of 2,666
 **System requirements**
 
 - Python 3.8
-- Python packages: argparse (1.4.0), more_itertools (8.12.0),[biopython (1.79)](https://biopython.org/wiki/Download), scikit-learn (0.24.2), scipy (1.5.3), [XGBoost (1.4.0)](https://xgboost.readthedocs.io/en/latest/install.html), pandas (1.3.4), [pandarallel (1.5.4)](https://github.com/nalepae/pandarallel), regex (2021.8.3), [RNAlib-2.4.18](https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html)
+- Python packages: argparse (1.4.0), more_itertools (8.12.0),[biopython (1.79)](https://biopython.org/wiki/Download), scikit-learn (0.24.2), scipy (1.5.3), [XGBoost (1.5.0)](https://xgboost.readthedocs.io/en/latest/install.html), pandas (1.3.4), [pandarallel (1.5.4)](https://github.com/nalepae/pandarallel), regex (2021.8.3), [RNAlib-2.4.18](https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/examples_python.html)
 
 
 If you encounter problems setting up the environment or packages, please check out the detailed description for installing the packages in the [scripts folder](https://github.com/julianeweller/MinsePIE/tree/main/scripts).
@@ -30,6 +28,13 @@ git clone https://github.com/julianeweller/MinsePIE.git
 git pull
 # install MinsePIE: go into the folder with setup.py
 pip install .
+
+```
+
+Here is an example on how to use minsepie in python:
+```
+import minsepie
+minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
 
 ```
 
