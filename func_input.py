@@ -77,17 +77,6 @@ def load_celllines(file: str, head = 'mmr') -> dict:
     return celllinestatus
 
 
-# Load
-def load_model(modeldir: str) -> dict:
-    """Loads the models from a directory into a dictionary. Returns dictionary."""
-    modellist = [os.path.basename(d) for d in glob.glob(modeldir+  '/*.sav')]
-    model_dict = {}
-    for model in modellist:
-        modelpath = os.path.join(modeldir, model)
-        model_temp = pickle.load(open(modelpath, 'rb'))
-        model_dict[model] = model_temp
-    return model_dict
-
 def read_table(filepath: str):
     if filepath.endswith('.csv'):
         request = pd.read_csv(filepath)
@@ -98,3 +87,13 @@ def read_table(filepath: str):
     else:
         raise ArgumentError("There was an error reading in the input file. Please check the format (either .csv, .tsv or .txt).")
     return request
+
+def load_model(modeldir):
+    """Loads the models from a directory into a dictionary. Returns dictionary."""
+    modellist = [os.path.basename(d) for d in glob.glob(str(modeldir / '*.sav'))]
+    model_dict = {}
+    for model in modellist:
+        modelpath = modeldir / model
+        model_temp = pickle.load(open(modelpath, 'rb'))
+        model_dict[model] = model_temp
+    return model_dict

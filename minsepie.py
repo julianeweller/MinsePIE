@@ -1,8 +1,15 @@
+from pandarallel import pandarallel
+from datetime import datetime
+import pandas as pd
+from argparse import ArgumentError
+import xgboost
 from func_features import *
 from func_input import *
 from func_score import *
+import pathlib
 
 # minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA', spacer = 'GGCCCAGACTGAGCACGTGA', mmr = 0, outdir = "./")
+current_dir = pathlib.Path(__file__).parent.resolve()
 
 def predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  pbslen = 13, halen = 15, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None):
     pandarallel.initialize()
@@ -26,10 +33,10 @@ def predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  pbslen 
     
     # Retrieve mmr if mmr is not given
     if mmr == None:
-        mmr = cellline2mmr(cellline, './celllines.csv', head = 'mmr')
+        mmr = cellline2mmr(cellline, current_dir / 'celllines.csv', head = 'mmr')
 
     # Load the model
-    model_dict = load_model('./models/')
+    model_dict = load_model(current_dir / 'models')
     
     # Create the dataframe
     request = init_df(insert, spacer, pbs, ha, mmr, mean, std)

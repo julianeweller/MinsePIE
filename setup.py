@@ -24,13 +24,13 @@ setuptools.setup(
         'regex>=2021.8'
         'scikit-learn>=0.24',
         'biopython>=1.79',
-        'xgboost>=1.4',
+        'xgboost==1.5.0',
         'scipy>=1.5',
         'datetime',
-        'pandarallel>=1.6',
+        'pandarallel==1.5.4',
         'more-itertools>=8.12',
         'viennarna>=2.5.0a1',
-        'psutil',
+        'psutil==5.9.0',
         'more_itertools>=8.12.0'
     ]
 )

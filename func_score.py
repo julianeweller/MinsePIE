@@ -1,11 +1,5 @@
-
-# import pandas as pd
-from argparse import ArgumentError
-import xgboost as xgb
 from func_input import *
 from func_features import *
-from pandarallel import pandarallel
-from datetime import datetime
 
 def scale_zscore(zscore, mean, std):
     """Calculates the predicited insertion efficiency from the Z-score."""
@@ -15,7 +9,6 @@ def scale_zscore(zscore, mean, std):
 def prediction(df, model_dict, model = 'MinsePIE_v3.sav'):
     """Uses the loaded model to predict insertion efficiency from an input sequence."""
     features = ['length', 'VF_RTT_z', 'mmr', 'percC', 'pairedbases', 'Arun_maxlen',  'percA', 'percT','pos1compl', 'loop1_intact']
-
     # choose model
     pred_model = model_dict[model]
     # predict
