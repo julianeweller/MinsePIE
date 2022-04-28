@@ -38,6 +38,40 @@ minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCC
 
 ```
 
+## Python API
+###Prediction
+**minsepie.predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  halen = 15, pbslen = 13, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None)** \n
+
+Predicts editing outcomes for insert sequences based on pegRNA features given individually or determined from fasta sequence. Provide either fasta (with optionally rttlen, pbslen, spclen) or pbs + rtt + spacer. 
+
+
+| Parameter | Type | Description |
+| ------------- | ------------- | ------------- |
+| insert  | list  | Insert sequences to be tested|
+| fasta  | file  | Fasta file with target sequences|
+| pbs  | str  | Primer binding site sequence for the pegRNA|
+| ha  | str  | Homology arm for reverse transcriptase template covering the homology sequence. This does not include the new sequence to be inserted|
+| spacer  | str  | pegRNA spacer|
+| halen | int |Length of the RTT. Only needed if target site is provided as fasta. |
+| pbslen | int |Length of the PBS. Only needed if target site is provided as fasta. |
+| spclen | int | Length of the spacer. Only needed if target site is provided as fasta.|
+| mmr | int | Mismatch repair proficiency of cell line. 0: MMR deficient. 1: MMR proficient|
+|Inputmode |“dna”, “protein”, or None|Insert sequence can either be nucleotides or amino acids. If none, default is DNA. |
+|cellline| str, None |Instead of providing the MMR status directly, cell line can be provided and MMR status is determined based on reference file.|
+|outdir|dir|Output directory|
+|mean|int, None| Expected mean editing rate for the prime editing screen used to scale the z-factor to an insertion rate.|
+|std| int, None|Expected standard deviation for the prime editing screen used to scale the z-factor to an insertion rate.
+|model|str, None| Model used to predict editing efficiency.
+
+
+Returns request as	dataframe with features and prediction
+
+Example:
+```
+predict([“TGTCA”], pbs = “CAGACTGAGCACG”, rtt = “TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA”, spacer = “GGCCCAGACTGAGCACGTGA”, mmr = 0)
+```
+
+
 
 ## Reference
 
