@@ -28,13 +28,13 @@ def parse_args(defaults, cellchoices):
 
     single_parser.add_argument('-i', '--insert', dest = 'insert', type = val_seq, nargs='+', help ='Insert seuquence', required=True) # this can be list
     single_parser.add_argument('-p', '--pbs', dest = 'pbs', type = val_nt, help = 'Primer binding site of pegRNA')
-    single_parser.add_argument('-r', '--rtt', dest = 'rtt', type = val_nt, help = 'Reverse transcriptase template of pegRNA')
+    single_parser.add_argument('-h', '--ha', dest = 'ha', type = val_nt, help = 'Homologous sequence to DNA in reverse transcriptase template of pegRNA')
     single_parser.add_argument('-g', '--spacer', dest = 'spacer', type = val_nt, help = 'Spacer of pegRNA')
     single_parser.add_argument('-f', '--fasta', dest = 'fasta', type = val_fasta, help = 'Target sequence with brackets for place of insertion')
     
-    single_parser.add_argument('-rl', '--rttlen', dest = 'rttlen', type = str, default = defaults['rttlen'], help = 'Length of RTT')
-    single_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of RTT')
-    single_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of RTT')
+    single_parser.add_argument('-hl', '--halen', dest = 'halen', type = str, default = defaults['halen'], help = 'Length of HA')
+    single_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of PBS')
+    single_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of spacer')
 
     single_parser.add_argument('-im', '--inputmode', dest = 'inputmode', choices = ['dna','protein'], default = defaults['inputmode'], help ='Is your insert sequence given as dna or amino acid sequence?')
     single_parser.add_argument('-m', '--mmr', dest = 'mmr', type = int, help ='MMR status of cell line', required=False)
@@ -49,9 +49,9 @@ def parse_args(defaults, cellchoices):
     batch_parser.add_argument('-i', '--insert', dest = 'insert', type = val_table, help ='Path to csv/tsv/txt table with insert sequences and pegRNA features', required=True) # this is the file with all the features
     # this is not yet implemented, but idea is to have several bracket annotations where the inserts can be inserted when the features are not given in the table   
     batch_parser.add_argument('-f', '--fasta', dest = 'fasta', type = val_fasta, help = 'Target sequence with brackets for place of insertion')
-    batch_parser.add_argument('-rl', '--rttlen', dest = 'rttlen', type = str, default = defaults['rttlen'], help = 'Length of RTT')
-    batch_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of RTT')
-    batch_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of RTT')
+    batch_parser.add_argument('-hl', '--halen', dest = 'halen', type = str, default = defaults['rttlen'], help = 'Length of HA')
+    batch_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of PBS')
+    batch_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of Spacer')
 
     batch_parser.add_argument('-im', '--inputmode', dest = 'inputmode', choices = ['dna','protein'], default = defaults['inputmode'], help ='Is your insert sequence given as dna or amino acid sequence?')
     batch_parser.add_argument('-m', '--mmr', dest = 'mmr', type = int, help ='MMR status of cell line', required=False)
