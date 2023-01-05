@@ -4,13 +4,27 @@ authors:
   - family-names: Weller
     given-names: Juliane
     orcid: https://orcid.org/0000-0002-1310-6168
+  - family-names: Pallaseni
+    given-names: Ananth
+    orcid: https://orcid.org/0000-0002-4840-195X
   - family-names: Koeppel
     given-names: Jonas
     orcid: https://orcid.org/0000-0003-1306-3994
   - family-names: Peets
     given-names: Elin Madli
+  - family-names: Kuzmin
+    given-names: Ivan
+  - family-names: Raudvere
+    given-names: Uku
+  - family-names: Peterson
+    given-names: Hedi
+    orcid: https://orcid.org/0000-0001-9951-5116
+  - family-names: Liberante
+    given-names: Fabio
+    orcid: https://orcid.org/0000-0002-0192-5385
   - family-names: Parts
     given-names: Leopold
+    orcid: https://orcid.org/0000-0002-2618-670X
 title: "MinsePIE: Modelling insertion efficiency for Prime Insertion Experiments"
 version: 3.0
 doi: 10.1101/2021.11.10.468024
