@@ -39,8 +39,8 @@ minsepie.predict(['TGTCA'], pbs = 'CAGACTGAGCACG', ha = 'TGATGGCAGAGGAAAGGAAGCCC
 ```
 
 ## Python API
-###Prediction
-**minsepie.predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  halen = 15, pbslen = 13, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None)** \n
+### Prediction
+minsepie.predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  halen = 15, pbslen = 13, spclen = 20, mmr = 0, inputmode = None, cellline = None, outdir = None, mean = None, std = None, model = None)
 
 Predicts editing outcomes for insert sequences based on pegRNA features given individually or determined from fasta sequence. Provide either fasta (with optionally rttlen, pbslen, spclen) or pbs + rtt + spacer. 
 
@@ -75,7 +75,7 @@ predict([“TGTCA”], pbs = “CAGACTGAGCACG”, rtt = “TGATGGCAGAGGAAAGGAAGC
 
 ## Reference
 
-Predicting efficiency of writing short sequences into the genome using prime editing </br>
-Jonas Koeppel, Elin Madli Peets, Juliane Weller, Ananth Pallaseni, Fabio Liberante, Leopold Parts </br>
-bioRxiv https://www.biorxiv.org/content/10.1101/2021.11.10.468024v1 </br>
-doi: https://doi.org/10.1101/2021.11.10.468024
+Prediction of prime editing insertion efficiencies using sequence features and DNA repair determinants </br>
+Jonas Koeppel, Juliane Weller, Elin Madli Peets, Ananth Pallaseni, Ivan Kuzmin, Uku Raudvere, Hedi Peterson, Fabio Giuseppe Liberante & Leopold Parts </br>
+[Nat Biotechnol](https://www.biorxiv.org/content/10.1101/2021.11.10.468024v1) (2023)</br>
+doi: [https://doi.org/10.1101/2021.11.10.468024](https://doi.org/10.1038/s41587-023-01678-y)
