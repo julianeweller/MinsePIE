@@ -68,7 +68,7 @@ Returns request as	dataframe with features and prediction
 
 Example:
 ```
-predict([“TGTCA”], pbs = “CAGACTGAGCACG”, rtt = “TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA”, spacer = “GGCCCAGACTGAGCACGTGA”, mmr = 0)
+predict([“TGTCA”], pbs = “CAGACTGAGCACG”, ha = “TGATGGCAGAGGAAAGGAAGCCCTGCTTCCTCCA”, spacer = “GGCCCAGACTGAGCACGTGA”, mmr = 0)
 ```
 
 
