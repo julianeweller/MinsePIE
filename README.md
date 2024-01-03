@@ -1,5 +1,5 @@
 # MinsePIE  &nbsp; :pie:
-Find the code for the manuscript resubmission in [scripts](https://github.com/julianeweller/MinsePIE/blob/main/scripts/modelling.py).
+To predict insertion rates, also check out the MinsePIE online tool on [elixir.ut.ee/minsepie/](https://elixir.ut.ee/minsepie/).
 
 ### Modelling insertion efficiency for Prime Insertion Experiments
 
