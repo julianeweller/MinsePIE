@@ -207,7 +207,7 @@ def get_VF_baseline(df):
     for l in loi:
         seqtemp = []
         VF_baseline[l] = {}
-        for k in range(1000):
+        for k in range(25000):
             seqtemp.append(DNA(l))
         # Calculate VF values for all those sequences per target site and append to list
         for t in df['HA'].unique():
