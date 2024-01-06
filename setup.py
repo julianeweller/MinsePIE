@@ -21,7 +21,7 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'pandas>=1.3',
-        'regex>=2021.8'
+        'regex>=2021.8',
         'scikit-learn>=0.24',
         'biopython>=1.79',
         'xgboost==1.5.0',
