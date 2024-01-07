@@ -91,8 +91,11 @@ def get_vf(x):
         return 0
     else:
         return vf[1]
-        
-def DNA(length):
+
+def DNA(length, seed=None):
+    # set random seed to have deterministic output
+    if seed is not None:
+        random.seed(seed)
     return ''.join(random.choice('CGTA') for _ in range(length))
 
 # Set up data
@@ -200,15 +203,20 @@ def get_pegrna(seq, halen, pbslen, spclen):
 
     return spacer, ha, pbs
 
+
 def get_VF_baseline(df):
+    seed = 42
     VF_baseline = {}
     loi = list(set(df['length']))
     #  Generate 1000 random sequences for each length of interest
     for l in loi:
         seqtemp = []
         VF_baseline[l] = {}
-        for k in range(25000):
-            seqtemp.append(DNA(l))
+
+        seqtemp = []
+
+        for k in range(5000):
+            seqtemp.append(DNA(l, seed=seed+k)) # Each iteration gets a unique seed
         # Calculate VF values for all those sequences per target site and append to list
         for t in df['HA'].unique():
             # For each RTT, create variableseq + RTT and calculate its VF value
