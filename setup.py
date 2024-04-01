@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="minsepie", 
-    version="3.0",
+    version="3.1",
     author="Juliane Weller",
     author_email="jw38@sanger.ac.uk",
     description="Tool to prime editing insertion efficiencies",

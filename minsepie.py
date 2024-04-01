@@ -59,6 +59,81 @@ def predict(insert, fasta = None, pbs = None, ha = None, spacer = None,  pbslen 
 
     return request
 
+# minsepie.predict_batch("./examples/his6_codonvariants_batchinput_1.txt", outdir = "./")
+# minsepie.predict_batch("./examples/his6_codonvariants_batchinput_2.txt", outdir = "./", longoutput = True)
+
+def predict_batch(dfpath, inputmode = None, mmr = None, outdir = None, mean = None, std = None, model = None, longoutput = None):
+    """ Predicts editing outcomes from batch input. Required columns are 'insert', 'spacer', 'pbs' and 'ha'. Default for mmr is mmr-deficient. If you are using cell lines with mmr, please provide mmr = 1. """
+    
+    batch_df = pd.read_csv(dfpath, sep = '\t')
+    
+    # Initialize parallel processing
+    pandarallel.initialize()
+    
+    # Clean up variables
+    if model == None:
+        model = 'MinsePIE_v3.sav'
+    if inputmode == None:
+        inputmode = 'dna'
+    if mmr == None:
+        mmr = 0
+    if mean == None:
+        mean = 0.5
+    if std == None:
+        std = 0.05
+    if longoutput == None:
+        longoutput = False
+
+    # Check what variables have been given and are correct
+    try:
+        batch_df['insert'] = batch_df['insert'].apply(val_nt)
+        batch_df['spacer'] = batch_df['spacer'].apply(val_nt)
+        batch_df['PBS'] = batch_df['PBS'].apply(val_nt)
+        batch_df['HA'] = batch_df['HA'].apply(val_nt)
+    except:
+        raise ArgumentError("Please provide the correct input sequences in the correct columns.")
+
+    # Retrieve mmr if mmr is not given
+    if 'mmr' not in batch_df.columns:
+        batch_df['mmr'] = mmr
+    else:   
+        batch_df['mmr'] = batch_df['mmr'].apply(lambda x: x if x is not None else mmr)
+
+    # Add mean and std if not given
+    if 'mean' not in batch_df.columns:
+        batch_df['mean'] = mean
+    else:
+        batch_df['mean'] = batch_df['mean'].apply(lambda x: x if x is not None else mean)
+    
+    if 'std' not in batch_df.columns:
+        batch_df['std'] = std
+    else:   
+        batch_df['std'] = batch_df['std'].apply(lambda x: x if x is not None else std)
+
+    # Load the model
+    model_dict = load_model(current_dir / 'models')
+    
+    # We have the basic table with sequences now, but if it's an amino acid sequence, we need to convert it to DNA, or if it's DNA we need to accept ambigiuity
+    if inputmode == 'protein':
+        batch_df = extend_aa(batch_df)
+    elif inputmode == 'dna':
+        batch_df = extend_nt(batch_df)
+
+    # Calculate features
+    request = enhance_feature_df(batch_df)
+
+    # Prediction
+    request = prediction(request, model_dict, model)
+
+    if not outdir == None:
+        outpath = os.path.join(outdir, datetime.now().strftime("%Y%m%d-%H%M%S") + '_minsepie_prediction.csv')
+        request[['insert','PBS','HA','mmr', 'mean', 'std', 'percIns_predicted', 'zscore']].to_csv(outpath, index = False)
+        if longoutput == True:
+            outpath_long = os.path.join(outdir, datetime.now().strftime("%Y%m%d-%H%M%S") + '_minsepie_prediction_long.csv')
+            request.to_csv(outpath_long, index = False)
+    return request
+
+
 def cellline2mmr(cellline: str, file: str, head = 'mmr') -> int:
     cellline_dict = load_celllines(file, head)
     mmr_status = int(cellline_dict[cellline])

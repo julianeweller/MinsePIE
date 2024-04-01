@@ -46,18 +46,13 @@ def parse_args(defaults, cellchoices):
         
     ### Batch mode for several target sites
     batch_parser = subparser.add_parser('batch', help='Predict insertion rates for a different target sites')
-    batch_parser.add_argument('-i', '--insert', dest = 'insert', type = val_table, help ='Path to csv/tsv/txt table with insert sequences and pegRNA features', required=True) # this is the file with all the features
-    # this is not yet implemented, but idea is to have several bracket annotations where the inserts can be inserted when the features are not given in the table   
-    batch_parser.add_argument('-f', '--fasta', dest = 'fasta', type = val_fasta, help = 'Target sequence with brackets for place of insertion')
-    batch_parser.add_argument('-hl', '--halen', dest = 'halen', type = str, default = defaults['rttlen'], help = 'Length of HA')
-    batch_parser.add_argument('-pl', '--pbslen', dest = 'pbslen', type = str, default = defaults['pbslen'], help = 'Length of PBS')
-    batch_parser.add_argument('-gl', '--spclen', dest = 'spclen', type = str, default = defaults['spclen'], help = 'Length of Spacer')
+    batch_parser.add_argument('-i', '--input', dest = 'dfpath', type = val_table, help ='Path to csv/tsv/txt table with insert sequences and pegRNA features', required=True) # this is the file with all the features
 
     batch_parser.add_argument('-im', '--inputmode', dest = 'inputmode', choices = ['dna','protein'], default = defaults['inputmode'], help ='Is your insert sequence given as dna or amino acid sequence?')
     batch_parser.add_argument('-m', '--mmr', dest = 'mmr', type = int, help ='MMR status of cell line', required=False)
-    batch_parser.add_argument('-c', '--cellline', dest = 'cell', choices = cellchoices, default = defaults['cellline'], help ='Choose your cell line for MMR status', required=False)
 
     batch_parser.add_argument('-o', '--outdir', dest = 'outdir', type = val_path, help ='Path to output directory', required=False)
+    batch_parser.add_argument('-long', '--longoutput', dest = 'longoutput', type = val_path, help ='Set to True if full output dataframe is prefered', required=False)
     batch_parser.add_argument('-a', '--mean', dest = 'mean', type = float, default = defaults['mean'], help ='Expected mean editing efficiency for experimental setup', required=False)
     batch_parser.add_argument('-s', '--std', dest = 'std', type = float, default = defaults['std'], help ='Expected standard deviation for editing efficiency of experimental setup', required=False)
 
